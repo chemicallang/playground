@@ -1,0 +1,95 @@
+import lab
+import std
+
+import "@cstd/build.lab" as cstdMod
+import "@std/build.lab" as stdMod
+import "@html_cbi/build.lab" as htmlMod
+import "@css_cbi/build.lab" as cssMod
+import "@json/build.lab" as jsonMod
+import "@page/build.lab" as pageMod
+import "@net/build.lab" as netMod
+import "@fs/build.lab" as fsMod
+
+using namespace std;
+
+struct JobAndContext {
+    var ctx : *mut AppBuildContext
+    var job : *mut LabJob
+}
+
+var jc : JobAndContext
+
+func build(ctx : *mut AppBuildContext) {
+
+    // the exe job
+    const exe_job = ctx.build_exe(std::string_view("playground"))
+
+    // the cstd module
+    var cstd_module = cstdMod.build(ctx, exe_job);
+    if(cstd_module == null) {
+        return
+    }
+
+    // the std module
+    var std_module = stdMod.build(ctx, exe_job);
+    if(std_module == null) {
+        return
+    }
+
+    // the html module
+    var html_module = htmlMod.build(ctx, exe_job);
+    if(html_module == null) {
+        return
+    }
+
+    // the html module
+    var css_module = cssMod.build(ctx, exe_job);
+    if(css_module == null) {
+        return
+    }
+
+    // the html module
+    var page_module = pageMod.build(ctx, exe_job);
+    if(page_module == null) {
+        return
+    }
+
+    // the net module
+    var net_module = netMod.build(ctx, exe_job)
+    if(net_module == null) {
+        return
+    }
+
+    // the json module
+    var json_module = jsonMod.build(ctx, exe_job)
+    if(json_module == null) {
+        return
+    }
+
+    var fs_module = fsMod.build(ctx, exe_job)
+    if(fs_module == null) {
+        return
+    }
+
+    const depsArr = [ cstd_module, std_module, html_module, css_module, page_module, net_module, json_module, fs_module ]
+    var dependencies = std::span<*mut Module>(depsArr)
+    const module = ctx.chemical_dir_module(std::string_view(""), std::string_view("main"), lab::rel_path_to("src").to_view(), dependencies);
+
+    // add the single module
+    ctx.add_module(exe_job, module)
+
+    // jc.ctx = ctx;
+    // jc.job = exe_job;
+    // ctx.on_finished((data : *void) => {
+    //     const jx = data as *mut JobAndContext
+    //     if(jx.job.status == LabJobStatus.Success) {
+    //         jx.ctx.launch_executable(jx.job.abs_path.to_view(), true);
+    //     }
+    // }, &jc);
+
+    cstd_module.llvm_ir_path = ctx.llvm_ir_path(exe_job, cstd_module);
+    std_module.llvm_ir_path = ctx.llvm_ir_path(exe_job, std_module);
+    html_module.llvm_ir_path = ctx.llvm_ir_path(exe_job, html_module);
+    module.llvm_ir_path = ctx.llvm_ir_path(exe_job, module);
+
+}

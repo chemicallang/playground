@@ -167,7 +167,7 @@ public func compile_files(c_output : bool, files : &mut std::vector<std::pair<st
 
     // building the command
     var command = std::vector<std::string>();
-    command.push(std::string("cmake-build-debugwsl/Compiler"))
+    command.push(std::string("chemical"))
     command.push(modFilePath)
     command.push(std::string("-o"))
     command.push(outputFilePath.copy())

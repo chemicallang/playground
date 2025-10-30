@@ -1,7 +1,8 @@
 enum OutputType {
     RunOut,
     LLVMIR,
-    CTranslation
+    CTranslation,
+    CompilerOutput
 }
 
 public func (value : &mut JsonValue) take_string() : std::string {
@@ -15,7 +16,7 @@ public func (value : &mut JsonValue) take_string() : std::string {
 
 // Small cross-platform executor: returns (exit_code, combined stdout+stderr)
 public struct ExecResult {
-    var status : int
+    var status : int = 0
     var output : std::string
 }
 
@@ -96,145 +97,6 @@ func generate_random_32bit() : u32 {
     return (rand() as u32 << 16) | rand() as u32;
 }
 
-struct CompilationResult {
-    var output : std::string
-    var error_msg : *char = null
-}
-
-public func compile_files(c_output : bool, files : &mut std::vector<std::pair<std::string, std::string>>) : CompilationResult {
-
-    var temp : [13]char
-   // use two independent randoms so the 12-char id is not duplicated
-    var r1 = generate_random_32bit();
-    var r2 = generate_random_32bit();
-    base64_encode_32bit(r1, &mut temp[0]);   // writes temp[0..5]
-    base64_encode_32bit(r2, &mut temp[6]);   // writes temp[6..11]
-    temp[12] = '\0';
-
-    // prefer a string object so later code can safely use .data()
-    var dir_name = std::string_view(&temp[0], 12);
-
-    // create the directory
-    var created = fs::create_dir(dir_name.data())
-    if(created is std::Result.Err) {
-        printf("couldn't create directory %s\n", dir_name.data());
-        var result = CompilationResult()
-        result.error_msg = "couldn't create a directory"
-        return result;
-    }
-
-    // writing the files
-    while(!files.empty()) {
-        var file = files.take_last()
-
-        var filePath = std::string()
-        filePath.append_view(dir_name)
-        filePath.append('/');
-        filePath.append_string(file.first)
-
-        if(file.second.size() > 5000) {
-            var result = CompilationResult()
-            result.error_msg = "a file content cannot be larger than 5000 characters"
-            return result;
-        }
-
-        // TODO: verify the file name
-        var written = fs::write_text_file(filePath.data(), file.second.data() as *u8, file.second.size())
-        if(written is std::Result.Err) {
-            var Err(err) = written else unreachable
-            var msg = err.message()
-            printf("couldn't create the file at %s because %s\n", filePath.data(), msg.data());
-            var result = CompilationResult();
-            result.error_msg = "couldn't create the file"
-            return result;
-        }
-
-    }
-
-    // calculating .mod file path
-    var modFilePath = std::string()
-    modFilePath.append_view(dir_name)
-    modFilePath.append_view(std::string_view("/chemical.mod"))
-
-    // build directory path
-    var buildDirPath = std::string()
-    buildDirPath.append_view(dir_name)
-
-    // output file path
-    var outputFilePath = std::string()
-    outputFilePath.append_view(dir_name)
-    outputFilePath.append_view(std::string_view("/build.exe"))
-
-    // building the command
-    var command = std::vector<std::string>();
-    command.push(std::string("chemical"))
-    command.push(modFilePath)
-    command.push(std::string("-o"))
-    command.push(outputFilePath.copy())
-    if(c_output) {
-        command.push(std::string("-jt"))
-        command.push(std::string("2c"))
-    } else {
-        command.push(std::string("-jt"))
-        command.push(std::string("inter"))
-        command.push(std::string("-out-ll-all"))
-    }
-    command.push(std::string("--no-cache"))
-
-    var procResult = launch_exe(command)
-    if(procResult.success) {
-        // printing the output
-        printf("output received from command %s\n", procResult.output.data());
-
-        // calculating the path to output file
-        var finalOutPath = std::string()
-        if(c_output) {
-            finalOutPath.append_string(outputFilePath)
-        } else {
-            finalOutPath.append_view(dir_name)
-            finalOutPath.append_view(std::string_view("/build/main/llvm_ir.ll"))
-        }
-
-        // read the entire file (if can)
-        var result = fs::read_entire_file(finalOutPath.data())
-        if(result is std.Result.Err) {
-            var Err(err) = result else unreachable
-            var msg = err.message()
-            printf("error reading file at '%s' with message '%s'\n", finalOutPath.data(), msg.data());
-            var result = CompilationResult();
-            result.error_msg = "couldn't read the output file"
-            return result;
-        }
-
-        var Ok(value) = result else unreachable
-        var cres = CompilationResult()
-        cres.output.append_view(std::string_view(value.data() as *char, value.size()))
-
-        var rem_res = fs::remove_dir_all_recursive(dir_name.data())
-        if(rem_res is std.Result.Err) {
-            var Err(err) = rem_res else unreachable
-            var msg = err.message()
-            printf("error removing directory at '%s' with message '%s'\n", dir_name.data(), msg.data());
-        }
-
-        return cres
-
-    } else {
-        // printing the output
-        printf("output received from command %s\n", procResult.output.data());
-
-        var rem_res = fs::remove_dir_all_recursive(dir_name.data())
-        if(rem_res is std.Result.Err) {
-            var Err(err) = rem_res else unreachable
-            var msg = err.message()
-            printf("error removing directory at '%s' with message '%s'\n", dir_name.data(), msg.data());
-        }
-
-    }
-
-    return CompilationResult();
-}
-
 public func main(argc : int, argv : **char) : int {
 
     // create default config (you can customize fields)
@@ -298,12 +160,14 @@ public func main(argc : int, argv : **char) : int {
                     if(outputType != null && outputType is JsonValue.Number) {
                         var Number(number_str) = *outputType else unreachable;
                         var ot = OutputType.CTranslation
-                        if(number_str.equals_view(std::string_view("1"))) {
+                        if(number_str.equals_view(std::string_view("0"))) {
                             ot = OutputType.RunOut
                         } else if(number_str.equals_view(std::string_view("1"))) {
                             ot = OutputType.LLVMIR
                         } else if(number_str.equals_view(std::string_view("2"))) {
                             ot = OutputType.CTranslation
+                        } else if(number_str.equals_view(std::string_view("3"))) {
+                            ot = OutputType.CompilerOutput
                         } else {
                             res.write_view("""{ "type" : "error", "message" : "unknown output type" }""")
                             return;
@@ -334,8 +198,9 @@ public func main(argc : int, argv : **char) : int {
                             res.write_view("""{ "type" : "error", "message" : "no files given" }""")
                             return;
                         }
-                        var result = compile_files(ot == OutputType.CTranslation, files)
+                        var result = compile_files_in_docker(ot, files)
                         if(result.error_msg != null) {
+                            printf("error in compile_files: %s\n", result.error_msg);
                             res.write_view("""{ "type" : "error", "message" : "internal error occurred" }""")
                             return;
                         }

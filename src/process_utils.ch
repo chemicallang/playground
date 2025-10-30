@@ -90,9 +90,9 @@ if (def.windows) {
 
 
 public struct ProcResult {
-    var exit_code : int
+    var exit_code : int = 0
     var output : std::string
-    var success : bool
+    var success : bool = false
 }
 
 // Small helper: quote an arg for CreateProcess commandline (very small, handles spaces and quotes)

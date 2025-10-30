@@ -85,8 +85,8 @@ func PlaygroundPage(page : &mut HtmlPage) {
         """}</style>
         <script>{"""
 
-            // 0 -> output, 1 -> llvm ir, 2 -> c translation
-            let outputType = 2;
+            // 0 -> output, 1 -> llvm ir, 2 -> c translation, 4 -> compiler output
+            let outputType = 0;
             let tabs = [
                 {
                     name : "main.ch",
@@ -112,12 +112,14 @@ source "main.ch"
             let mainOutputText = ""
             let llvmIrOutputText = ""
             let cTranslationOutputText = ""
+            let compilerOutputText = ""
 
             document.addEventListener("DOMContentLoaded", () => {
 
                 let opOutBtn = document.getElementById("output-type-output-btn")
                 let opIrBtn = document.getElementById("output-type-ir-btn")
                 let opCBtn = document.getElementById("output-type-c-btn")
+                let coOutBtn = document.getElementById("output-type-compiler-btn")
 
                 let editor = document.getElementById("editor")
                 let output = document.getElementById("output")
@@ -136,6 +138,8 @@ source "main.ch"
                             return opIrBtn;
                         case 2:
                             return opCBtn;
+                        case 3:
+                            return coOutBtn;
                         default:
                             console.error("1: unknown output type", outputType)
                             return null;
@@ -150,6 +154,8 @@ source "main.ch"
                             return llvmIrOutputText;
                         case 2:
                             return cTranslationOutputText;
+                        case 3:
+                            return compilerOutputText;
                         default:
                             console.error("2: unknown output type", outputType);
                             return ""
@@ -166,6 +172,9 @@ source "main.ch"
                             break;
                         case 2:
                             cTranslationOutputText = text;
+                            break;
+                        case 3:
+                            compilerOutputText = text;
                             break;
                         default:
                             console.error("3: unknown output type", outputType);
@@ -223,12 +232,10 @@ source "main.ch"
                         content : ""
                     }]
                 })
-                if(opOutBtn != null) {
-                    opOutBtn.addEventListener("click", () => {
-                        // 0 -> output
-                        onOutputBtnClick(0)
-                    })
-                }
+                opOutBtn.addEventListener("click", () => {
+                    // 0 -> output
+                    onOutputBtnClick(0)
+                })
 
                 opIrBtn.addEventListener("click", () => {
                     // 1 -> llvm ir
@@ -238,6 +245,11 @@ source "main.ch"
                 opCBtn.addEventListener("click", () => {
                     // 2 -> c translation
                     onOutputBtnClick(2)
+                })
+
+                coOutBtn.addEventListener("click", () => {
+                    // 3 -> compiler output
+                    onOutputBtnClick(3)
                 })
 
                 let submitBtn = document.getElementById("submit-btn")
@@ -264,6 +276,7 @@ source "main.ch"
                             console.log(res)
                         } else if(res.type == "output") {
                             setOutputText(savedOutputType, res.output)
+                            // console.log("received output", res.output);
                         } else {
                             console.error("unknown", res);
                         }
@@ -290,7 +303,8 @@ source "main.ch"
                 </div>
                 <div class={editor_container(page)}>
                     <div class={editor_toolbar(page)}>
-                        <!--<button id="output-type-output-btn" class={editor_tab_button(page)}>Output</button>-->
+                        <button id="output-type-output-btn" class={editor_tab_button(page)}>Output</button>
+                        <button id="output-type-compiler-btn" class={editor_tab_button(page)}>CompilerOutput</button>
                         <button id="output-type-ir-btn" class={editor_tab_button(page)}>LLVM IR</button>
                         <button id="output-type-c-btn" class={editor_tab_button(page)}>C Translation</button>
                         <div class={editor_toolbar(page)} style="flex-grow:1;justify-content:end;">

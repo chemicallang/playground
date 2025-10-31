@@ -1,5 +1,23 @@
 import "@html/page.ch"
 
+func error_box_container(page : &mut HtmlPage) : *char {
+    return #css {
+        width : 100%;
+        padding : 1em;
+        display : none;
+    }
+}
+
+func error_msg_container(page : &mut HtmlPage) : *char {
+    return #css {
+        width : 100%;
+        padding : 1em;
+        border-radius : 4px;
+        background-color : rgb(14 91 192 / 33%);
+        border : 2px solid rgba(0,0,0,.7);
+    }
+}
+
 func textarea_container(page : &mut HtmlPage) : *char {
     return #css {
         display : flex;
@@ -116,6 +134,9 @@ source "main.ch"
 
             document.addEventListener("DOMContentLoaded", () => {
 
+                let errorBox = document.getElementById("error-box")
+                let errorBoxMsg = document.getElementById("error-box-msg")
+
                 let opOutBtn = document.getElementById("output-type-output-btn")
                 let opIrBtn = document.getElementById("output-type-ir-btn")
                 let opCBtn = document.getElementById("output-type-c-btn")
@@ -127,8 +148,18 @@ source "main.ch"
                 let mainFileBtn = document.getElementById("main-file-btn")
                 let modFileBtn = document.getElementById("mod-file-btn")
 
+                let settingsBtn = document.getElementById("settings-btn")
+
                 tabs[0].btnElem = mainFileBtn;
                 tabs[1].btnElem = modFileBtn;
+
+                const displayError = (text) => {
+                    errorBoxMsg.innerHTML = text
+                    errorBox.style.display = "block";
+                    setTimeout(() => {
+                        errorBox.style.display = "none";
+                    }, 4000)
+                }
 
                 const getOutputButton = () => {
                     switch(outputType) {
@@ -252,11 +283,81 @@ source "main.ch"
                     onOutputBtnClick(3)
                 })
 
+                // ------------- settings setup
+
+                // call `showSettings()` to open the dialog (e.g. hook to your Settings button)
+                  function showSettings() {
+                    document.getElementById('settings-modal').classList.remove('modal-hidden');
+                    document.getElementById('settings-modal').setAttribute('aria-hidden','false');
+                  }
+                  function hideSettings() {
+                    document.getElementById('settings-modal').classList.add('modal-hidden');
+                    document.getElementById('settings-modal').setAttribute('aria-hidden','true');
+                  }
+                  // Wire up buttons (run once at page load)
+                  (function(){
+                    const openBtn = document.getElementById('settings-button'); // your existing settings button should have this id
+                    if (openBtn) openBtn.addEventListener('click', showSettings);
+                    document.getElementById('settings-close').addEventListener('click', hideSettings);
+                    document.getElementById('settings-backdrop').addEventListener('click', hideSettings);
+                    document.getElementById('settings-cancel').addEventListener('click', hideSettings);
+                    document.getElementById('settings-save').addEventListener('click', () => {
+                      // persist in-memory (you can also save to localStorage if desired)
+                      window.playgroundSettings = collectSettings();
+                      hideSettings();
+                    });
+
+                    // load defaults
+                    window.playgroundSettings = {
+                      debug_ir: false,
+                      fno_unwind_tables: false,
+                      mode: 'debug',
+                      lto: false,
+                      benchmark: false,
+                      bm_files: false,
+                      bm_modules: false
+                    };
+
+                    // optionally populate the form from window.playgroundSettings if you store defaults
+                    function populateForm() {
+                      const s = window.playgroundSettings;
+                      document.getElementById('opt-debug-ir').checked = !!s.debug_ir;
+                      document.getElementById('opt-fno-unwind-tables').checked = !!s.fno_unwind_tables;
+                      document.getElementById('opt-mode').value = s.mode || 'debug';
+                      document.getElementById('opt-lto').checked = !!s.lto;
+                      document.getElementById('opt-benchmark').checked = !!s.benchmark;
+                      document.getElementById('opt-bm-files').checked = !!s.bm_files;
+                      document.getElementById('opt-bm-modules').checked = !!s.bm_modules;
+                    }
+                    populateForm();
+                  })();
+
+                  // collects the settings object to include in submit payload
+                  function collectSettings() {
+                    return {
+                      debug_ir: document.getElementById('opt-debug-ir').checked,
+                      fno_unwind_tables: document.getElementById('opt-fno-unwind-tables').checked,
+                      mode: document.getElementById('opt-mode').value,
+                      lto: document.getElementById('opt-lto').checked,
+                      benchmark: document.getElementById('opt-benchmark').checked,
+                      bm_files: document.getElementById('opt-bm-files').checked,
+                      bm_modules: document.getElementById('opt-bm-modules').checked
+                    };
+                  }
+
+                  settingsBtn.addEventListener("click", showSettings);
+
+                // ------------- settings setup end -------------------------
+
                 let submitBtn = document.getElementById("submit-btn")
                 submitBtn.addEventListener("click", () => {
                     let savedOutputType = outputType
                     getContentFromEditor()
-                    let input = { files : [], outputType : savedOutputType }
+                    let input = {
+                        files : [],
+                        outputType : savedOutputType,
+                        settings : collectSettings()
+                    }
                     for(let i = 0; i < tabs.length; i++) {
                         const tab = tabs[i]
                         input.files = [...input.files, {
@@ -273,12 +374,14 @@ source "main.ch"
                         body: JSON.stringify(input)
                     }).then((res) => res.json()).then((res) => {
                         if(res.type == "error") {
-                            console.log(res)
+                            displayError("error: " + res.message)
                         } else if(res.type == "output") {
                             setOutputText(savedOutputType, res.output)
-                            // console.log("received output", res.output);
+                            if(res.status != 0) {
+                                displayError("error: non zero status '" + res.status + "' returned, check compiler output")
+                            }
                         } else {
-                            console.error("unknown", res);
+                            displayError("error: unknown output received from server");
                         }
                     })
                 })
@@ -288,7 +391,9 @@ source "main.ch"
         <div>
             {GlobalStyles(page)}
             {Header(page)}
-
+            <div id="error-box" class={error_box_container(page)}>
+                <div id="error-box-msg" class={error_msg_container(page)}></div>
+            </div>
             <div class={textarea_container(page)}>
                 <div class={editor_container(page)}>
                     <div class={editor_toolbar(page)}>
@@ -308,12 +413,64 @@ source "main.ch"
                         <button id="output-type-ir-btn" class={editor_tab_button(page)}>LLVM IR</button>
                         <button id="output-type-c-btn" class={editor_tab_button(page)}>C Translation</button>
                         <div class={editor_toolbar(page)} style="flex-grow:1;justify-content:end;">
-                            <button class={editor_tab_button(page)}>Settings</button>
+                            <button class={editor_tab_button(page)} id="settings-btn">Settings</button>
                             <button id="submit-btn" class={editor_tab_button_primary(page)}>Submit</button>
                         </div>
                     </div>
                     <textarea id="output" class={display_editor(page)} placeholder="Press the submit button"></textarea>
                 </div>
+            </div>
+
+            <!-- Settings modal (paste once in the page) -->
+            <style>{"""
+                #settings-modal.modal-hidden { display:none; }
+                #settings-modal { position:fixed; inset:0; z-index:2000; }
+                .modal-backdrop { position:absolute; inset:0; background:rgba(0,0,0,0.45); }
+                .modal-card {
+                  position:relative;
+                  width:min(720px, 95%);
+                  margin:6% auto;
+                  background:rgb(57 57 57);
+                  border-radius:8px;
+                  box-shadow:0 8px 30px rgba(0,0,0,0.2);
+                  padding:12px;
+                }
+                .modal-header { display:flex; justify-content:space-between; align-items:center; }
+                .modal-body { display:flex; flex-direction:column; gap:8px; padding:8px 0; }
+                .modal-footer { display:flex; justify-content:flex-end; gap:8px; padding-top:8px; }
+                .modal-body label { display:flex; align-items:center; gap:8px; font-size:14px; }
+            """}</style>
+            <div id="settings-modal" class="modal-hidden" role="dialog" aria-modal="true" aria-hidden="true">
+              <div class="modal-backdrop" id="settings-backdrop"></div>
+              <div class="modal-card" role="document" id="settings-card">
+                <header class="modal-header">
+                  <h3>Playground Settings</h3>
+                  <button id="settings-close" title="Close">✕</button>
+                </header>
+                <div class="modal-body">
+                  <label><input type="checkbox" id="opt-debug-ir"> debug-ir (produce debug version of IR)</label>
+                  <label><input type="checkbox" id="opt-fno-unwind-tables"> fno-unwind-tables (improve IR when disabled)</label>
+                  <label>
+                    mode
+                    <select id="opt-mode">
+                      <option value="debug_quick">debug_quick</option>
+                      <option value="debug">debug</option>
+                      <option value="debug_complete">debug_complete</option>
+                      <option value="release">release</option>
+                      <option value="release_fast">release_fast</option>
+                      <option value="release_small">release_small</option>
+                    </select>
+                  </label>
+                  <label><input type="checkbox" id="opt-lto"> lto (link time optimization)</label>
+                  <label><input type="checkbox" id="opt-benchmark"> benchmark (benchmark compilation)</label>
+                  <label><input type="checkbox" id="opt-bm-files"> bm-files (benchmark files)</label>
+                  <label><input type="checkbox" id="opt-bm-modules"> bm-modules (benchmark modules)</label>
+                </div>
+                <footer class="modal-footer">
+                  <button id="settings-cancel">Cancel</button>
+                  <button id="settings-save">Save</button>
+                </footer>
+              </div>
             </div>
 
             {Footer(page)}

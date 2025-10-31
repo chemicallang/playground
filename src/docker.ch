@@ -6,7 +6,18 @@ public struct DockerCompilationResult {
     var error_msg : *char = null
 }
 
-func write_entrypoint_script_new(outputType : OutputType, host_dir : std::string) : std::Result<UnitTy, fs::FsError> {
+// new: compile settings carried from the UI
+public struct CompileSettings {
+    var debug_ir : bool = false;
+    var fno_unwind_tables : bool = false;
+    var mode : std::string
+    var lto : bool = false;
+    var benchmark : bool = false;
+    var bm_files : bool = false;
+    var bm_modules : bool = false;
+}
+
+func write_entrypoint_script_new(settings : &CompileSettings, outputType : OutputType, host_dir : std::string) : std::Result<UnitTy, fs::FsError> {
 
     // script path
     var script_path = std::string()
@@ -17,6 +28,50 @@ func write_entrypoint_script_new(outputType : OutputType, host_dir : std::string
     var content = std::string()
     content.append_view(std::string_view("#!/bin/sh\n"))
     content.append_view(std::string_view("'chemical' 'chemical.mod' '--no-cache' -o 'build.exe'"))
+
+    if(!settings.mode.empty()) {
+        // allowed modes list
+        const modesAllowed : [6]std::string_view = [
+            std::string_view("debug_quick"),
+            std::string_view("debug"),
+            std::string_view("debug_complete"),
+            std::string_view("release"),
+            std::string_view("release_fast"),
+            std::string_view("release_small")
+        ];
+        var okMode = false;
+        for (var i=0; i < 6; i++) {
+            if (settings.mode.equals_view(modesAllowed[i])) { okMode = true; break; }
+        }
+        if (okMode) {
+            // quote mode
+            content.append_view(std::string_view(" --mode '"));
+            content.append_string(settings.mode);
+            content.append_view(std::string_view("'"));
+        }
+    }
+
+    // debug-ir
+    if (settings.debug_ir) {
+        content.append_view(std::string_view(" --debug-ir"));
+    }
+
+    // fno-unwind-tables: if true, append flag to disable unwind tables (adjust flag name to actual compiler flag)
+    if (settings.fno_unwind_tables) {
+        content.append_view(std::string_view(" --fno-unwind-tables"));
+    }
+
+    // lto
+    if (settings.lto) {
+        content.append_view(std::string_view(" --lto"));
+    }
+
+    // benchmark flags
+    if(outputType == OutputType.CompilerOutput) {
+        if (settings.benchmark) { content.append_view(std::string_view(" --benchmark")); }
+        if (settings.bm_files) { content.append_view(std::string_view(" --bm-files")); }
+        if (settings.bm_modules) { content.append_view(std::string_view(" --bm-modules")); }
+    }
 
     if(outputType == OutputType.CTranslation) {
         content.append_view(std::string_view(" -jt"))
@@ -29,7 +84,9 @@ func write_entrypoint_script_new(outputType : OutputType, host_dir : std::string
         // send the compiler output to nowhere
         content.append_view(std::string_view(" > /dev/null 2>&1\n"))
         // execute the build.exe (only if compiler command returned status code 0)
-        content.append_view("if [ $? -eq 0 ]; then\n\t'./build.exe'\nfi")
+        content.append_view(std::string_view("status=$?\n"))
+        content.append_view(std::string_view("if [ $status -ne 0 ]; then\n\texit $status\nfi\n"))
+        content.append_view(std::string_view("exec ./build.exe\n"))
     } else {
         // case: CompilerOutput
         // get both output stdout and stderr
@@ -46,7 +103,7 @@ func write_entrypoint_script_new(outputType : OutputType, host_dir : std::string
     return std.Result.Ok(UnitTy{})
 }
 
-func compile_files_in_docker(outputType : OutputType, files : &mut std::vector<std::pair<std::string, std::string>>) : DockerCompilationResult {
+func compile_files_in_docker(settings : &CompileSettings, outputType : OutputType, files : &mut std::vector<std::pair<std::string, std::string>>) : DockerCompilationResult {
     // generate safe random id (as you already do)
     var temp : [13]char
     var r1 = generate_random_32bit()
@@ -143,7 +200,7 @@ func compile_files_in_docker(outputType : OutputType, files : &mut std::vector<s
     var outputFilePath = std::string_view("build.exe")
 
     // write entrypoint script into host_dir
-    var wr = write_entrypoint_script_new(outputType, host_dir.copy())
+    var wr = write_entrypoint_script_new(settings, outputType, host_dir.copy())
     if (wr is std.Result.Err) {
         var res = DockerCompilationResult()
         res.status = -1
@@ -162,11 +219,15 @@ func compile_files_in_docker(outputType : OutputType, files : &mut std::vector<s
     // Use conservative flags (see my previous message). You can tweak memory/cpus.
     docker_cmd.append_view(std::string_view("docker run --rm --name "))
     docker_cmd.append_string(container_name)
-    docker_cmd.append_view(std::string_view(" --workdir /work --network none --user 1000:1000 --cap-drop ALL "))
-    // TODO: docker_cmd.append_view(std::string_view("--security-opt no-new-privileges --pids-limit 128 --memory 256m --cpus 0.5 --ulimit core=0 --tmpfs /tmp:size=64m "))
+    docker_cmd.append_view(std::string_view(" --workdir /work --network none --user 1000:1000 --cap-drop ALL"))
+    docker_cmd.append_view(std::string_view(" --security-opt no-new-privileges")); // no new privs
+    // resource limits
+    docker_cmd.append_view(std::string_view(" --pids-limit=128 --memory=256m --memory-swap=256m --cpus=0.5 --ulimit core=0"));
+    // make root filesystem read-only (only /work will be writable via a volume/tmpfs)
+    docker_cmd.append_view(std::string_view(" --read-only"));
     // mount the host dir
     // NOTE: quoting is important: we put the host_dir in double quotes
-    docker_cmd.append_view(std::string_view("-v \""))
+    docker_cmd.append_view(std::string_view(" -v \""))
     docker_cmd.append_string(host_dir)
     docker_cmd.append_view(std::string_view(":/work:rw\" "))
     docker_cmd.append_view(std::string_view("chemicallang/chemical:v0.0.25-ubuntu sh /work/run_compile.sh"))

@@ -198,7 +198,30 @@ public func main(argc : int, argv : **char) : int {
                             res.write_view("""{ "type" : "error", "message" : "no files given" }""")
                             return;
                         }
-                        var result = compile_files_in_docker(ot, files)
+
+
+                        // parse optional settings object
+                        var settings = CompileSettings();
+                        const settingsPtr = values.get_ptr(std::string("settings"));
+                        if (settingsPtr != null && settingsPtr is JsonValue.Object) {
+                            var Object(smap) = *settingsPtr else unreachable;
+                            const s_debug_ir = smap.get_ptr(std::string("debug_ir"));
+                            if (s_debug_ir != null && s_debug_ir is JsonValue.Bool) { var Bool(b) = *s_debug_ir else unreachable; settings.debug_ir = b; }
+                            const s_fno = smap.get_ptr(std::string("fno_unwind_tables"));
+                            if (s_fno != null && s_fno is JsonValue.Bool) { var Bool(b) = *s_fno else unreachable; settings.fno_unwind_tables = b; }
+                            const s_mode = smap.get_ptr(std::string("mode"));
+                            if (s_mode != null && s_mode is JsonValue.String) { settings.mode = s_mode.take_string(); }
+                            const s_lto = smap.get_ptr(std::string("lto"));
+                            if (s_lto != null && s_lto is JsonValue.Bool) { var Bool(b) = *s_lto else unreachable; settings.lto = b; }
+                            const s_bench = smap.get_ptr(std::string("benchmark"));
+                            if (s_bench != null && s_bench is JsonValue.Bool) { var Bool(b) = *s_bench else unreachable; settings.benchmark = b; }
+                            const s_bmfiles = smap.get_ptr(std::string("bm_files"));
+                            if (s_bmfiles != null && s_bmfiles is JsonValue.Bool) { var Bool(b) = *s_bmfiles else unreachable; settings.bm_files = b; }
+                            const s_bmmod = smap.get_ptr(std::string("bm_modules"));
+                            if (s_bmmod != null && s_bmmod is JsonValue.Bool) { var Bool(b) = *s_bmmod else unreachable; settings.bm_modules = b; }
+                        }
+
+                        var result = compile_files_in_docker(settings, ot, files)
                         if(result.error_msg != null) {
                             printf("error in compile_files: %s\n", result.error_msg);
                             res.write_view("""{ "type" : "error", "message" : "internal error occurred" }""")
@@ -208,7 +231,9 @@ public func main(argc : int, argv : **char) : int {
                         // preparing the final view
                         var final = std::string()
                         var builder = JsonStringBuilder{ ptr : final }
-                        final.append_view(std::string_view("{ \"type\" : \"output\", \"output\" : "))
+                        final.append_view(std::string_view("{ \"type\" : \"output\", \"status\" : "))
+                        final.append_integer(result.status)
+                        final.append_view(std::string_view(", \"output\" : "))
                         escape_string_into(builder, result.output)
                         final.append_view(std::string_view(" }"))
 

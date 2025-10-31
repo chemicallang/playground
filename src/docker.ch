@@ -216,7 +216,7 @@ func compile_files_in_docker(settings : &CompileSettings, outputType : OutputTyp
     docker_cmd.append_view(std::string_view(" --workdir /work --network none --user 1000:1000 --cap-drop ALL"))
     docker_cmd.append_view(std::string_view(" --security-opt no-new-privileges")); // no new privs
     // resource limits
-    docker_cmd.append_view(std::string_view(" --pids-limit=128 --memory=256m --memory-swap=256m --cpus=0.5 --ulimit core=0"));
+    docker_cmd.append_view(std::string_view(" --pids-limit=32 --memory=128m --memory-swap=256m --cpus=0.25 --ulimit core=0"));
     // make root filesystem read-only (only /work will be writable via a volume/tmpfs)
     docker_cmd.append_view(std::string_view(" --read-only"));
     // mount the host dir

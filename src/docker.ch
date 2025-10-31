@@ -113,21 +113,15 @@ func compile_files_in_docker(settings : &CompileSettings, outputType : OutputTyp
     temp[12] = '\0'
     var dir_name = std::string_view(&temp[0], 12)
 
-    // create host temp dir path. On Linux: /tmp/<id>, on Windows you may use %TEMP%\play-<id>
-    // For simplicity: use /tmp/play-<id> unless you override on Windows.
     var host_dir = std::string()
-    comptime if (def.windows) {
-        // Windows note: adjust to a proper temp path on Windows hosts in your environment
-        host_dir.append_view(std::string_view("./play-"))
-        host_dir.append_view(dir_name)
-    } else {
-        host_dir.append_view(std::string_view("/tmp/play-"))
-        host_dir.append_view(dir_name)
-    }
+    host_dir.append_view(std::string_view("./play-"))
+    host_dir.append_view(dir_name)
 
     var created = fs::create_dir(host_dir.data())
     if (created is std.Result.Err) {
-        printf("couldn't create workspace directory at %s\n", host_dir.data());
+        var Err(error) = created else unreachable
+        var msg = error.message()
+        printf("couldn't create workspace directory at %s because %s\n", host_dir.data(), msg.data());
         var res = DockerCompilationResult()
         res.status = -1
         res.error_msg = "couldn't create workspace directory"

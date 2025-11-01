@@ -99,8 +99,28 @@ func write_entrypoint_script_new(settings : &CompileSettings, outputType : Outpu
     // write the file
     var w = fs::write_text_file(script_path.data(), content.data() as *u8, content.size())
     if (w is std.Result.Err) { return w }
+
+    // set the permissions on the script file
+    var perm = fs::set_permissions(script_path.data(), 0o755)
+    if(perm is std.Result.Err) { return perm }
+
     // if hosting on POSIX we would chmod +x, but inside container we will invoke "sh /work/run_compile.sh" so executable bit not strictly necessary.
     return std.Result.Ok(UnitTy{})
+}
+
+func shell_escape_single_quotes(orig: std::string) : std::string {
+    var out = std::string();
+    // For every ' -> replace with '\'' (that's: single-quote, double-quote, single-quote)
+    // Implementation: replace ' with '"'"'
+    for (var i = 0; i < orig.size(); i += 1) {
+        const c = orig.get(i as size_t);
+        if (c == ('\'' as u8)) {
+            out.append_view(std::string_view("'\"'\"'")); // yields: '\'' when concatenated in shell
+        } else {
+            out.append(c);
+        }
+    }
+    return out;
 }
 
 func compile_files_in_docker(settings : &CompileSettings, outputType : OutputType, files : &mut std::vector<std::pair<std::string, std::string>>) : DockerCompilationResult {
@@ -114,7 +134,13 @@ func compile_files_in_docker(settings : &CompileSettings, outputType : OutputTyp
     var dir_name = std::string_view(&temp[0], 12)
 
     var host_dir = std::string()
-    host_dir.append_view(std::string_view("./play-"))
+
+    if(def.windows) {
+        host_dir.append_view(std::string_view("./play-"))
+    } else {
+        host_dir.append_view(std::string_view("/home/playground/app/play-"))
+    }
+
     host_dir.append_view(dir_name)
 
     var created = fs::create_dir(host_dir.data())
@@ -125,6 +151,18 @@ func compile_files_in_docker(settings : &CompileSettings, outputType : OutputTyp
         var res = DockerCompilationResult()
         res.status = -1
         res.error_msg = "couldn't create workspace directory"
+        return res
+    }
+
+    // set the permissions
+    var perm_res = fs::set_permissions(host_dir.data(), 0o755);
+    if (perm_res is std.Result.Err) {
+        printf("failed setting permissions on %s\n", host_dir.data());
+        // cleanup and return error
+        fs::remove_dir_all_recursive(host_dir.data());
+        var res = DockerCompilationResult()
+        res.status = -1
+        res.error_msg = "couldn't set permissions on host directory"
         return res
     }
 
@@ -156,11 +194,20 @@ func compile_files_in_docker(settings : &CompileSettings, outputType : OutputTyp
         path.append_string(file.first)
         var written = fs::write_text_file(path.data(), file.second.data() as *u8, file.second.size())
         if (written is std.Result.Err) {
+            var Err(err) = written else unreachable;
+            var msg = err.message()
+            printf("failed writing text file to path %s because %s\n", path.data(), msg.data());
             var res = DockerCompilationResult()
             res.status = -1
             res.error_msg = "couldn't write file in workspace"
             fs::remove_dir_all_recursive(host_dir.data())
             return res
+        }
+        var perm = fs::set_permissions(path.data(), 0o755)
+        if(perm is std.Result.Err) {
+            var Err(err) = perm else unreachable;
+            var msg = err.message()
+            printf("failed to set permissions on path %s because %s\n", path.data(), msg.data());
         }
     }
 
@@ -203,6 +250,40 @@ func compile_files_in_docker(settings : &CompileSettings, outputType : OutputTyp
         return res
     }
 
+    if(!def.windows) {
+        const esc = shell_escape_single_quotes(host_dir.copy());
+
+        // 1) clear any ACLs recursively (harmless if none)
+        var cmd_clear_acl = std::string();
+        cmd_clear_acl.append_view(std::string_view("setfacl -bR '"));
+        cmd_clear_acl.append_string(esc);
+        cmd_clear_acl.append_view(std::string_view("' 2>/dev/null || true"));
+        var rc1 = system(cmd_clear_acl.data());
+        if (rc1 != 0) {
+            printf("warning: setfacl returned %d (ignored)\n", rc1);
+        }
+
+        // 2) set sane unix permissions: dirs get +x (X), files get rw for owner/group, r for others
+        var cmd_chmod = std::string();
+        cmd_chmod.append_view(std::string_view("chmod -R u=rwX,g=rwX,o=rx '"));
+        cmd_chmod.append_string(esc);
+        cmd_chmod.append_view(std::string_view("' 2>/dev/null || true"));
+        var rc2 = system(cmd_chmod.data());
+        if (rc2 != 0) {
+            printf("warning: chmod returned %d (ignored)\n", rc2);
+        }
+
+        // 3) chown everything to the unprivileged container user (UID 1000) so builds can write
+        var cmd_chown = std::string();
+        cmd_chown.append_view(std::string_view("chown -R 1000:1000 '"));
+        cmd_chown.append_string(esc);
+        cmd_chown.append_view(std::string_view("' 2>/dev/null || true"));
+        var rc3 = system(cmd_chown.data());
+        if (rc3 != 0) {
+            printf("warning: chown returned %d (ignored)\n", rc3);
+        }
+    }
+
     // Build docker run CLI string.
     // We mount host_dir -> /work inside container and run "sh /work/run_compile.sh"
     var container_name = std::string()
@@ -219,6 +300,7 @@ func compile_files_in_docker(settings : &CompileSettings, outputType : OutputTyp
     docker_cmd.append_view(std::string_view(" --pids-limit=32 --memory=128m --memory-swap=256m --cpus=0.25 --ulimit core=0"));
     // make root filesystem read-only (only /work will be writable via a volume/tmpfs)
     docker_cmd.append_view(std::string_view(" --read-only"));
+    docker_cmd.append_view(std::string_view(" --tmpfs /tmp:rw,mode=1777 -e TMPDIR=/work"));
     // mount the host dir
     // NOTE: quoting is important: we put the host_dir in double quotes
     docker_cmd.append_view(std::string_view(" -v \""))

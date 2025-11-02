@@ -114,6 +114,7 @@ func PlaygroundPage(page : &mut HtmlPage) {
 public func printf(format : *char, _ : any...)
 public func main() : int {
     printf("Hello World");
+    return 0;
 }`
                 },
                 {

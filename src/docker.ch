@@ -123,6 +123,117 @@ func shell_escape_single_quotes(orig: std::string) : std::string {
     return out;
 }
 
+struct docker_worker_captured {
+    var docker_cmd : *std::string
+    var promise : *mut std.concurrent.Promise<ExecResult>
+}
+
+func docker_timeout_worker_fn(arg : *void) : *void {
+    var cap = arg as *mut docker_worker_captured
+    var result = run_command(cap.docker_cmd.to_view())
+    cap.promise.set(result)
+    return null
+}
+
+public func run_docker(container_name: &std.string, host_dir: &std.string) : ExecResult {
+
+    var docker_cmd = std::string()
+    // Use conservative flags (see my previous message). You can tweak memory/cpus.
+    docker_cmd.append_view(std::string_view("docker run --rm --name "))
+    docker_cmd.append_string(container_name)
+    docker_cmd.append_view(std::string_view(" --workdir /work --network none --user 1000:1000 --cap-drop ALL"))
+    docker_cmd.append_view(std::string_view(" --security-opt no-new-privileges")); // no new privs
+    // resource limits
+    docker_cmd.append_view(std::string_view(" --pids-limit=32 --memory=128m --memory-swap=256m --cpus=0.25 --ulimit core=0"));
+    // make root filesystem read-only (only /work will be writable via a volume/tmpfs)
+    docker_cmd.append_view(std::string_view(" --read-only"));
+    docker_cmd.append_view(std::string_view(" --tmpfs /tmp:rw,mode=1777 -e TMPDIR=/work"));
+    // mount the host dir
+    // NOTE: quoting is important: we put the host_dir in double quotes
+    docker_cmd.append_view(std::string_view(" -v \""))
+    docker_cmd.append_string(host_dir)
+    docker_cmd.append_view(std::string_view(":/work:rw\" "))
+    docker_cmd.append_view(std::string_view("chemicallang/chemical:v0.0.25-ubuntu sh /work/run_compile.sh"))
+
+    // run the docker command using your run_command helper (captures combined stdout+stderr)
+    return run_command(docker_cmd.to_view())
+
+}
+
+public func run_docker_with_timeout(container_name: &std.string, host_dir: &std.string, timeout_ms: ulong) : ExecResult {
+    var res_promise = malloc(sizeof(std.concurrent.Promise<ExecResult>)) as *mut std.concurrent.Promise<ExecResult>;
+    new(res_promise) std.concurrent.Promise<ExecResult>();
+
+    // Build docker run command
+    var docker_cmd = std.string();
+   // Use conservative flags (see my previous message). You can tweak memory/cpus.
+   docker_cmd.append_view(std::string_view("docker run --rm --name "))
+   docker_cmd.append_string(container_name)
+   docker_cmd.append_view(std::string_view(" --workdir /work --network none --user 1000:1000 --cap-drop ALL"))
+   docker_cmd.append_view(std::string_view(" --security-opt no-new-privileges")); // no new privs
+   // resource limits
+   docker_cmd.append_view(std::string_view(" --pids-limit=32 --memory=128m --memory-swap=256m --cpus=0.25 --ulimit core=0"));
+   // make root filesystem read-only (only /work will be writable via a volume/tmpfs)
+   docker_cmd.append_view(std::string_view(" --read-only"));
+   docker_cmd.append_view(std::string_view(" --tmpfs /tmp:rw,mode=1777 -e TMPDIR=/work"));
+   // mount the host dir
+   // NOTE: quoting is important: we put the host_dir in double quotes
+   docker_cmd.append_view(std::string_view(" -v \""))
+   docker_cmd.append_string(host_dir)
+   docker_cmd.append_view(std::string_view(":/work:rw\" "))
+   docker_cmd.append_view(std::string_view("chemicallang/chemical:v0.0.25-ubuntu sh /work/run_compile.sh"))
+
+    var cap = docker_worker_captured {
+        docker_cmd : &docker_cmd,
+        promise : res_promise
+    }
+
+    // Spawn thread
+    var worker_thread = std.concurrent.spawn(docker_timeout_worker_fn, &mut cap as *mut void);
+
+    // Timeout monitoring loop
+    var elapsed: ulong = 0;
+    var interval: ulong = 50; // check every 50ms
+    var finished: bool = false;
+
+    while(elapsed < timeout_ms) {
+        std.concurrent.sleep_ms(interval);
+        elapsed += interval;
+        if(res_promise.ready) {
+            finished = true;
+            break;
+        }
+    }
+
+    if(!finished) {
+        // Timeout exceeded -> forcibly kill container
+        var kill_cmd = std.string();
+        kill_cmd.append_view(std.string_view("docker kill "));
+        kill_cmd.append_string(container_name);
+        kill_cmd.append_view(std.string_view(" 2>/dev/null"));
+        run_command(kill_cmd.to_view());
+    }
+
+    // Wait for worker thread to finish to safely capture output
+    worker_thread.join()
+
+    // Get the result from promise (partial output if killed)
+    var result: ExecResult;
+    if(res_promise.ready) {
+        result = std::replace(res_promise.val, ExecResult());
+    } else {
+        // Timeout case: create dummy result
+        result = ExecResult();
+        result.status = -1;
+        result.output = std.string("Process timed out");
+    }
+
+    // Clean up promise
+    delete res_promise;
+    return result;
+}
+
+
 func compile_files_in_docker(settings : &CompileSettings, outputType : OutputType, files : &mut std::vector<std::pair<std::string, std::string>>) : DockerCompilationResult {
     // generate safe random id (as you already do)
     var temp : [13]char
@@ -135,7 +246,7 @@ func compile_files_in_docker(settings : &CompileSettings, outputType : OutputTyp
 
     var host_dir = std::string()
 
-    if(def.windows) {
+    if(def.windows || def.debug) {
         host_dir.append_view(std::string_view("./play-"))
     } else {
         host_dir.append_view(std::string_view("/home/playground/app/play-"))
@@ -290,26 +401,8 @@ func compile_files_in_docker(settings : &CompileSettings, outputType : OutputTyp
     container_name.append_view(std::string_view("chemical-play-"))
     container_name.append_view(dir_name)
 
-    var docker_cmd = std::string()
-    // Use conservative flags (see my previous message). You can tweak memory/cpus.
-    docker_cmd.append_view(std::string_view("docker run --rm --name "))
-    docker_cmd.append_string(container_name)
-    docker_cmd.append_view(std::string_view(" --workdir /work --network none --user 1000:1000 --cap-drop ALL"))
-    docker_cmd.append_view(std::string_view(" --security-opt no-new-privileges")); // no new privs
-    // resource limits
-    docker_cmd.append_view(std::string_view(" --pids-limit=32 --memory=128m --memory-swap=256m --cpus=0.25 --ulimit core=0"));
-    // make root filesystem read-only (only /work will be writable via a volume/tmpfs)
-    docker_cmd.append_view(std::string_view(" --read-only"));
-    docker_cmd.append_view(std::string_view(" --tmpfs /tmp:rw,mode=1777 -e TMPDIR=/work"));
-    // mount the host dir
-    // NOTE: quoting is important: we put the host_dir in double quotes
-    docker_cmd.append_view(std::string_view(" -v \""))
-    docker_cmd.append_string(host_dir)
-    docker_cmd.append_view(std::string_view(":/work:rw\" "))
-    docker_cmd.append_view(std::string_view("chemicallang/chemical:v0.0.25-ubuntu sh /work/run_compile.sh"))
-
     // run the docker command using your run_command helper (captures combined stdout+stderr)
-    var procRes = run_command(docker_cmd.to_view())
+    var procRes = run_docker_with_timeout(container_name, host_dir, 10u * 1000u)
     // procRes.status is exit code of docker run (if docker CLI succeeded it will be the exit code of the process inside container).
     // procRes.output is combined stdout+stderr from docker run
 

@@ -207,6 +207,8 @@ public func main(argc : int, argv : **char) : int {
                             var Object(smap) = *settingsPtr else unreachable;
                             const s_debug_ir = smap.get_ptr(std::string("debug_ir"));
                             if (s_debug_ir != null && s_debug_ir is JsonValue.Bool) { var Bool(b) = *s_debug_ir else unreachable; settings.debug_ir = b; }
+                            const s_use_tcc = smap.get_ptr(std::string("use_tcc"));
+                            if (s_use_tcc != null && s_use_tcc is JsonValue.Bool) { var Bool(b) = *s_use_tcc else unreachable; settings.use_tcc = b; }
                             const s_fno = smap.get_ptr(std::string("fno_unwind_tables"));
                             if (s_fno != null && s_fno is JsonValue.Bool) { var Bool(b) = *s_fno else unreachable; settings.fno_unwind_tables = b; }
                             const s_mode = smap.get_ptr(std::string("mode"));

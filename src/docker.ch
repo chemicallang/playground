@@ -8,6 +8,7 @@ public struct DockerCompilationResult {
 
 // new: compile settings carried from the UI
 public struct CompileSettings {
+    var use_tcc : bool = false;
     var debug_ir : bool = false;
     var fno_unwind_tables : bool = false;
     var mode : std::string
@@ -71,6 +72,13 @@ func write_entrypoint_script_new(settings : &CompileSettings, outputType : Outpu
         if (settings.benchmark) { content.append_view(std::string_view(" --benchmark")); }
         if (settings.bm_files) { content.append_view(std::string_view(" --bm-files")); }
         if (settings.bm_modules) { content.append_view(std::string_view(" --bm-modules")); }
+    }
+
+    // check use tcc
+    if(outputType == OutputType.RunOut) {
+        if(settings.use_tcc) {
+            content.append_view(" --use-tcc")
+        }
     }
 
     if(outputType == OutputType.CTranslation) {

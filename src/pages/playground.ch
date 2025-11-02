@@ -132,6 +132,7 @@ source "main.ch"
             let llvmIrOutputText = ""
             let cTranslationOutputText = ""
             let compilerOutputText = ""
+            let assemblyOutputText = ""
 
             document.addEventListener("DOMContentLoaded", () => {
 
@@ -142,6 +143,7 @@ source "main.ch"
                 let opIrBtn = document.getElementById("output-type-ir-btn")
                 let opCBtn = document.getElementById("output-type-c-btn")
                 let coOutBtn = document.getElementById("output-type-compiler-btn")
+                let opAsmBtn = document.getElementById("output-type-asm-btn")
 
                 let editor = document.getElementById("editor")
                 let output = document.getElementById("output")
@@ -172,6 +174,8 @@ source "main.ch"
                             return opCBtn;
                         case 3:
                             return coOutBtn;
+                        case 4:
+                            return opAsmBtn;
                         default:
                             console.error("1: unknown output type", outputType)
                             return null;
@@ -188,6 +192,8 @@ source "main.ch"
                             return cTranslationOutputText;
                         case 3:
                             return compilerOutputText;
+                        case 4:
+                            return assemblyOutputText;
                         default:
                             console.error("2: unknown output type", outputType);
                             return ""
@@ -207,6 +213,9 @@ source "main.ch"
                             break;
                         case 3:
                             compilerOutputText = text;
+                            break;
+                        case 4:
+                            assemblyOutputText = text
                             break;
                         default:
                             console.error("3: unknown output type", outputType);
@@ -282,6 +291,11 @@ source "main.ch"
                 coOutBtn.addEventListener("click", () => {
                     // 3 -> compiler output
                     onOutputBtnClick(3)
+                })
+
+                opAsmBtn.addEventListener("click", () => {
+                    // 4 -> assembly output
+                    onOutputBtnClick(4)
                 })
 
                 // ------------- settings setup
@@ -415,6 +429,7 @@ source "main.ch"
                         <button id="output-type-output-btn" class={editor_tab_button(page)}>Output</button>
                         <button id="output-type-compiler-btn" class={editor_tab_button(page)}>CompilerOutput</button>
                         <button id="output-type-ir-btn" class={editor_tab_button(page)}>LLVM IR</button>
+                        <button id="output-type-asm-btn" class={editor_tab_button(page)}>Assembly</button>
                         <button id="output-type-c-btn" class={editor_tab_button(page)}>C Translation</button>
                         <div class={editor_toolbar(page)} style="flex-grow:1;justify-content:end;">
                             <button class={editor_tab_button(page)} id="settings-btn">Settings</button>

@@ -2,7 +2,8 @@ enum OutputType {
     RunOut,
     LLVMIR,
     CTranslation,
-    CompilerOutput
+    CompilerOutput,
+    AssemblyOutput
 }
 
 public func (value : &mut JsonValue) take_string() : std::string {
@@ -168,6 +169,8 @@ public func main(argc : int, argv : **char) : int {
                             ot = OutputType.CTranslation
                         } else if(number_str.equals_view(std::string_view("3"))) {
                             ot = OutputType.CompilerOutput
+                        } else if(number_str.equals_view(std::string_view("4"))) {
+                            ot = OutputType.AssemblyOutput
                         } else {
                             res.write_view("""{ "type" : "error", "message" : "unknown output type" }""")
                             return;

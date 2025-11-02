@@ -88,6 +88,10 @@ func write_entrypoint_script_new(settings : &CompileSettings, outputType : Outpu
         content.append_view(std::string_view(" -jt"))
         content.append_view(std::string_view(" inter"))
         content.append_view(std::string_view(" -out-ll-all"))
+    } else if(outputType == OutputType.AssemblyOutput) {
+        content.append_view(std::string_view(" -jt"))
+        content.append_view(std::string_view(" inter"))
+        content.append_view(std::string_view(" -out-asm-all"))
     } else if(outputType == OutputType.RunOut) {
         // send the compiler output to nowhere
         content.append_view(std::string_view(" > /dev/null 2>&1\n"))
@@ -423,6 +427,9 @@ func compile_files_in_docker(settings : &CompileSettings, outputType : OutputTyp
     } else if(outputType == OutputType.LLVMIR) {
         finalOutPath.append_string(host_dir)
         finalOutPath.append_view(std::string_view("/build/main/llvm_ir.ll"))
+    } else if(outputType == OutputType.AssemblyOutput) {
+        finalOutPath.append_string(host_dir)
+        finalOutPath.append_view(std::string_view("/build/main/mod_asm.s"))
     } else {
         // keep final output path empty, as no file to read
     }

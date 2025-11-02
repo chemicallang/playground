@@ -259,7 +259,7 @@ source "main.ch"
                 let fileAdderBtn = document.getElementById("file-adder-btn")
                 fileAdderBtn.addEventListener("click", () => {
                     let fileName = prompt("file name:")
-                    // TODO: verify the filename
+                    if(fileName == "") return;
                     var clonedButton = fileAdderBtn.cloneNode()
                     fileAdderBtn.parentElement.insertBefore(clonedButton, fileAdderBtn)
                     clonedButton.innerText = fileName;

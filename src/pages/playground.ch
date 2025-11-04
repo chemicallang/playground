@@ -83,6 +83,17 @@ func editor_tab_button(page : &mut HtmlPage) : *char {
     }
 }
 
+func tab_select_opt(page : &mut HtmlPage) : *char {
+    return #css {
+        padding : 10px 12px;
+        background-color : rgba(255,255,255,.2);
+        border-top-left-radius : 6px;
+        border-top-right-radius : 6px;
+        border : 0;
+        color : black;
+    }
+}
+
 func editor_tab_button_primary(page : &mut HtmlPage) : *char {
     return #css {
         padding : 10px 12px;
@@ -95,6 +106,9 @@ func editor_tab_button_primary(page : &mut HtmlPage) : *char {
 }
 
 func PlaygroundPage(page : &mut HtmlPage) {
+    var strListMapCompSet = getStrListMapCompSet()
+    var exprStrCompSet = getExprStrCompSet()
+    var embeddedLangsCompSet = getEmbeddedLangsCompSet()
     #html {
         <style>{"""
             button.active {
@@ -102,30 +116,40 @@ func PlaygroundPage(page : &mut HtmlPage) {
             }
         """}</style>
         <script>{"""
-
-            // 0 -> output, 1 -> llvm ir, 2 -> c translation, 4 -> compiler output
-            let outputType = 0;
-            let tabs = [
+        function create_tabs_from_comp_set(main, mod) {
+            return [
                 {
                     name : "main.ch",
                     index : 0,
                     btnElem : null,
-                    content : `@extern
-public func printf(format : *char, _ : any...)
-public func main() : int {
-    printf("Hello World");
-    return 0;
-}`
+                    content : main.replace(/\\`/g, '`')
                 },
                 {
                     name : "chemical.mod",
                     index : 1,
                     btnElem : null,
-                    content : `module main
-source "main.ch"
-`
+                    content : mod.replace(/\\`/g, '`')
                 }
             ]
+        }
+        """}</script>
+        <script>window.strListMapTabs = create_tabs_from_comp_set(`{strListMapCompSet.main}`, `{strListMapCompSet.mod}`)</script>
+        <script>window.exprStrTabs = create_tabs_from_comp_set(`{exprStrCompSet.main}`, `{exprStrCompSet.mod}`)</script>
+        <script>window.embeddedLangsTabs = create_tabs_from_comp_set(`{embeddedLangsCompSet.main}`, `{embeddedLangsCompSet.mod}`)</script>
+        <script>{"""
+
+            window.mostBasicTabs = create_tabs_from_comp_set(`@extern
+public func printf(format : *char, _ : any...)
+public func main() : int {
+    printf("Hello World");
+    return 0;
+}`, `module main
+source "main.ch"
+`)
+
+            // 0 -> output, 1 -> llvm ir, 2 -> c translation, 4 -> compiler output
+            let outputType = 0;
+            let tabs = window.mostBasicTabs
             let activeTab = 0
 
             let mainOutputText = ""
@@ -253,6 +277,33 @@ source "main.ch"
                     tabs[activeTab].content = editor.value
                 }
 
+                function setTabs(newTabs) {
+                    tabs = newTabs
+                    tabs[0].btnElem = mainFileBtn
+                    tabs[1].btnElem = modFileBtn;
+                    activeTab = 0
+                    editor.value = tabs[0].content
+                }
+
+                const select = document.getElementById('examples');
+                select.addEventListener('change', () => {
+                    const val = select.value;
+                    switch (val) {
+                        case '1':
+                            setTabs(window.mostBasicTabs);
+                            break;
+                        case '2':
+                            setTabs(window.strListMapTabs);
+                            break;
+                        case '3':
+                            setTabs(window.exprStrTabs);
+                            break;
+                        case '4':
+                            setTabs(window.embeddedLangsTabs);
+                            break;
+                    }
+                });
+
                 mainFileBtn.addEventListener("click", () => { onFileBtnClick(0) })
                 modFileBtn.addEventListener("click", () => { onFileBtnClick(1) })
 
@@ -324,7 +375,7 @@ source "main.ch"
 
                     // load defaults
                     window.playgroundSettings = {
-                      use_tcc: false,
+                      use_tcc: true,
                       debug_ir: false,
                       fno_unwind_tables: false,
                       mode: 'debug',
@@ -415,8 +466,11 @@ source "main.ch"
             <div class={textarea_container(page)}>
                 <div class={editor_container(page)}>
                     <div class={editor_toolbar(page)}>
-                        <select class={editor_tab_button(page)}>
-                            <option>Most Basic</option>
+                        <select id="examples" class={editor_tab_button(page)}>
+                            <option value="1" class={tab_select_opt(page)}>Most Basic</option>
+                            <option value="2" class={tab_select_opt(page)}>String List</option>
+                            <option value="3" class={tab_select_opt(page)}>Expressive Strings</option>
+                            <option value="4" class={tab_select_opt(page)}>Embedded Languages</option>
                         </select>
                         <button id="main-file-btn" class={editor_tab_button(page)}>main.ch</button>
                         <button id="mod-file-btn" class={editor_tab_button(page)}>chemical.mod</button>

@@ -75,7 +75,7 @@ func write_entrypoint_script_new(settings : &CompileSettings, outputType : Outpu
     }
 
     // check use tcc
-    if(outputType == OutputType.RunOut) {
+    if(outputType == OutputType.RunOut || outputType == OutputType.CompilerOutput) {
         if(settings.use_tcc) {
             content.append_view(" --use-tcc")
         }
@@ -156,7 +156,7 @@ public func run_docker(container_name: &std.string, host_dir: &std.string) : Exe
     docker_cmd.append_view(std::string_view(" --workdir /work --network none --user 1000:1000 --cap-drop ALL"))
     docker_cmd.append_view(std::string_view(" --security-opt no-new-privileges")); // no new privs
     // resource limits
-    docker_cmd.append_view(std::string_view(" --pids-limit=32 --memory=128m --memory-swap=256m --cpus=0.25 --ulimit core=0"));
+    docker_cmd.append_view(std::string_view(" --pids-limit=32 --memory=256m --memory-swap=512m --cpus=0.25 --ulimit core=0"));
     // make root filesystem read-only (only /work will be writable via a volume/tmpfs)
     docker_cmd.append_view(std::string_view(" --read-only"));
     docker_cmd.append_view(std::string_view(" --tmpfs /tmp:rw,mode=1777 -e TMPDIR=/work"));
@@ -165,7 +165,7 @@ public func run_docker(container_name: &std.string, host_dir: &std.string) : Exe
     docker_cmd.append_view(std::string_view(" -v \""))
     docker_cmd.append_string(host_dir)
     docker_cmd.append_view(std::string_view(":/work:rw\" "))
-    docker_cmd.append_view(std::string_view("chemicallang/chemical:v0.0.25-ubuntu sh /work/run_compile.sh"))
+    docker_cmd.append_view(std::string_view("chemicallang/chemical:v0.0.26-ubuntu sh /work/run_compile.sh"))
 
     // run the docker command using your run_command helper (captures combined stdout+stderr)
     return run_command(docker_cmd.to_view())
@@ -184,7 +184,7 @@ public func run_docker_with_timeout(container_name: &std.string, host_dir: &std.
    docker_cmd.append_view(std::string_view(" --workdir /work --network none --user 1000:1000 --cap-drop ALL"))
    docker_cmd.append_view(std::string_view(" --security-opt no-new-privileges")); // no new privs
    // resource limits
-   docker_cmd.append_view(std::string_view(" --pids-limit=32 --memory=128m --memory-swap=256m --cpus=0.25 --ulimit core=0"));
+   docker_cmd.append_view(std::string_view(" --pids-limit=32 --memory=256m --memory-swap=512m --cpus=0.25 --ulimit core=0"));
    // make root filesystem read-only (only /work will be writable via a volume/tmpfs)
    docker_cmd.append_view(std::string_view(" --read-only"));
    docker_cmd.append_view(std::string_view(" --tmpfs /tmp:rw,mode=1777 -e TMPDIR=/work"));
@@ -193,7 +193,7 @@ public func run_docker_with_timeout(container_name: &std.string, host_dir: &std.
    docker_cmd.append_view(std::string_view(" -v \""))
    docker_cmd.append_string(host_dir)
    docker_cmd.append_view(std::string_view(":/work:rw\" "))
-   docker_cmd.append_view(std::string_view("chemicallang/chemical:v0.0.25-ubuntu sh /work/run_compile.sh"))
+   docker_cmd.append_view(std::string_view("chemicallang/chemical:v0.0.26-ubuntu sh /work/run_compile.sh"))
 
     var cap = docker_worker_captured {
         docker_cmd : &docker_cmd,

@@ -8,6 +8,7 @@ public struct DockerCompilationResult {
 
 // new: compile settings carried from the UI
 public struct CompileSettings {
+    var verbose : bool = false;
     var use_tcc : bool = false;
     var debug_ir : bool = false;
     var fno_unwind_tables : bool = false;
@@ -69,6 +70,7 @@ func write_entrypoint_script_new(settings : &CompileSettings, outputType : Outpu
 
     // benchmark flags
     if(outputType == OutputType.CompilerOutput) {
+        if (settings.verbose) { content.append_view(std::string_view(" --verbose")); }
         if (settings.benchmark) { content.append_view(std::string_view(" --benchmark")); }
         if (settings.bm_files) { content.append_view(std::string_view(" --bm-files")); }
         if (settings.bm_modules) { content.append_view(std::string_view(" --bm-modules")); }
@@ -414,7 +416,7 @@ func compile_files_in_docker(settings : &CompileSettings, outputType : OutputTyp
     container_name.append_view(dir_name)
 
     // run the docker command using your run_command helper (captures combined stdout+stderr)
-    var procRes = run_docker_with_timeout(container_name, host_dir, 10u * 1000u)
+    var procRes = run_docker_with_timeout(container_name, host_dir, 60u * 1000u)
     // procRes.status is exit code of docker run (if docker CLI succeeded it will be the exit code of the process inside container).
     // procRes.output is combined stdout+stderr from docker run
 

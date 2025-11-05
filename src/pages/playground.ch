@@ -375,6 +375,7 @@ source "main.ch"
 
                     // load defaults
                     window.playgroundSettings = {
+                      verbose: false,
                       use_tcc: true,
                       debug_ir: false,
                       fno_unwind_tables: false,
@@ -388,6 +389,7 @@ source "main.ch"
                     // optionally populate the form from window.playgroundSettings if you store defaults
                     function populateForm() {
                       const s = window.playgroundSettings;
+                      document.getElementById('opt-verbose').checked = !!s.verbose;
                       document.getElementById('opt-use-tcc').checked = !!s.use_tcc;
                       document.getElementById('opt-debug-ir').checked = !!s.debug_ir;
                       document.getElementById('opt-fno-unwind-tables').checked = !!s.fno_unwind_tables;
@@ -403,6 +405,7 @@ source "main.ch"
                   // collects the settings object to include in submit payload
                   function collectSettings() {
                     return {
+                      verbose: document.getElementById('opt-verbose').checked,
                       use_tcc: document.getElementById('opt-use-tcc').checked,
                       debug_ir: document.getElementById('opt-debug-ir').checked,
                       fno_unwind_tables: document.getElementById('opt-fno-unwind-tables').checked,
@@ -521,6 +524,7 @@ source "main.ch"
                   <button id="settings-close" title="Close">✕</button>
                 </header>
                 <div class="modal-body">
+                  <label><input type="checkbox" id="opt-verbose"> verbose (more logs)</label>
                   <label><input type="checkbox" id="opt-use-tcc"> use-tcc (run translated c code via tiny cc)</label>
                   <label><input type="checkbox" id="opt-debug-ir"> debug-ir (produce debug version of IR)</label>
                   <label><input type="checkbox" id="opt-fno-unwind-tables"> fno-unwind-tables (improve IR when disabled)</label>

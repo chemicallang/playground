@@ -13,8 +13,9 @@ func error_msg_container(page : &mut HtmlPage) : *char {
         width : 100%;
         padding : 1em;
         border-radius : 4px;
-        background-color : rgb(14 91 192 / 33%);
-        border : 2px solid rgba(0,0,0,.7);
+        background-color : rgba(255, 0, 0, 0.1);
+        border : 1px solid rgba(255, 0, 0, 0.3);
+        color : #fca5a5;
     }
 }
 
@@ -25,6 +26,7 @@ func textarea_container(page : &mut HtmlPage) : *char {
         width : 100%;
         padding : 1em;
         gap : 1em;
+        flex-wrap: wrap;
     }
 }
 
@@ -33,12 +35,14 @@ func editor_area(page : &mut HtmlPage) : *char {
         width : 100%;
         height : 100%;
         min-height : 80vh;
-        background-color : rgba(0,0,0,.2);
+        background-color : var(--surface);
         outline : 0;
         padding : 1em;
-        border : 1px solid white;
-        border-radius : 3px;
-        color:white;
+        border : 1px solid var(--border-color);
+        border-radius : 0;
+        color: var(--text);
+        font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+        font-size: 14px;
     }
 }
 
@@ -47,12 +51,14 @@ func display_editor(page : &mut HtmlPage) : *char {
         width : 100%;
         height : 100%;
         min-height : 80vh;
-        background-color : rgba(0,0,0,.2);
+        background-color : var(--bg);
         outline : 0;
         padding : 1em;
-        border : 1px solid white;
-        border-radius : 3px;
-        color : white;
+        border : 1px solid var(--border-color);
+        border-radius : 0;
+        color : var(--text-muted);
+        font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+        font-size: 14px;
     }
 }
 
@@ -60,7 +66,7 @@ func editor_container(page : &mut HtmlPage) : *char {
     return #css {
         display : flex;
         flex-direction : column;
-        width : 100%;
+        flex : 1;
     }
 }
 
@@ -74,34 +80,36 @@ func editor_toolbar(page : &mut HtmlPage) : *char {
 
 func editor_tab_button(page : &mut HtmlPage) : *char {
     return #css {
-        padding : 10px 12px;
-        background-color : rgba(255,255,255,.2);
-        border-top-left-radius : 6px;
-        border-top-right-radius : 6px;
-        border : 0;
-        color : white;
+        padding : 8px 16px;
+        background-color : transparent;
+        border-top-left-radius : 4px;
+        border-top-right-radius : 4px;
+        border : 1px solid transparent;
+        color : var(--text-muted);
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 500;
     }
 }
 
 func tab_select_opt(page : &mut HtmlPage) : *char {
     return #css {
-        padding : 10px 12px;
-        background-color : rgba(255,255,255,.2);
-        border-top-left-radius : 6px;
-        border-top-right-radius : 6px;
-        border : 0;
-        color : black;
+        padding : 8px 12px;
+        background-color : var(--surface);
+        color : var(--text);
     }
 }
 
 func editor_tab_button_primary(page : &mut HtmlPage) : *char {
     return #css {
-        padding : 10px 12px;
-        background-color : #8b5cf6;
-        border-top-left-radius : 6px;
-        border-top-right-radius : 6px;
+        padding : 8px 16px;
+        background-color : var(--accent-primary);
+        border-radius : 4px;
         border : 0;
-        color : white;
+        color : var(--accent-contrast);
+        font-weight: 600;
+        cursor: pointer;
+        font-size: 13px;
     }
 }
 
@@ -112,7 +120,12 @@ func PlaygroundPage(page : &mut HtmlPage) {
     #html {
         <style>{"""
             button.active {
-                background-color : #8b5cf6;
+                background-color : var(--surface);
+                color: var(--text);
+                border: 1px solid var(--border-color);
+                border-bottom: 1px solid var(--surface);
+                margin-bottom: -1px;
+                z-index: 10;
             }
         """}</style>
         <script>{"""
@@ -466,7 +479,17 @@ source "main.ch"
             <div id="error-box" class={error_box_container(page)}>
                 <div id="error-box-msg" class={error_msg_container(page)}></div>
             </div>
-            <div class={textarea_container(page)}>
+            <div class={textarea_container(page)} style="flex-wrap: wrap;">
+                <style>{"""
+                    @media (max-width: 768px) {
+                        ."""}{textarea_container(page)}{""" {
+                            flex-direction: column;
+                        }
+                        ."""}{editor_container(page)}{""" {
+                            min-height: 50vh;
+                        }
+                    }
+                """}</style>
                 <div class={editor_container(page)}>
                     <div class={editor_toolbar(page)}>
                         <select id="examples" class={editor_tab_button(page)}>
@@ -506,15 +529,39 @@ source "main.ch"
                   position:relative;
                   width:min(720px, 95%);
                   margin:6% auto;
-                  background:rgb(57 57 57);
+                  background:var(--surface);
+                  border: 1px solid var(--border-color);
                   border-radius:8px;
                   box-shadow:0 8px 30px rgba(0,0,0,0.2);
                   padding:12px;
                 }
-                .modal-header { display:flex; justify-content:space-between; align-items:center; }
-                .modal-body { display:flex; flex-direction:column; gap:8px; padding:8px 0; }
-                .modal-footer { display:flex; justify-content:flex-end; gap:8px; padding-top:8px; }
-                .modal-body label { display:flex; align-items:center; gap:8px; font-size:14px; }
+                .modal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom: 1rem; }
+                .modal-body { display:flex; flex-direction:column; gap:12px; padding:8px 0; }
+                .modal-footer { display:flex; justify-content:flex-end; gap:12px; padding-top:16px; border-top: 1px solid var(--border-color); margin-top: 16px; }
+                .modal-body label { display:flex; align-items:center; gap:12px; font-size:15px; color: var(--text); cursor: pointer; }
+                .modal-body input[type="checkbox"] { accent-color: var(--accent-primary); width: 16px; height: 16px; }
+                .modal-body select { 
+                    padding: 6px 12px; 
+                    border-radius: var(--border-radius); 
+                    border: 1px solid var(--border-color); 
+                    background: var(--bg); 
+                    color: var(--text); 
+                }
+                #settings-close {
+                    background: transparent;
+                    border: none;
+                    color: var(--text-muted);
+                    font-size: 1.5rem;
+                    cursor: pointer;
+                    padding: 4px;
+                    line-height: 1;
+                    border-radius: 4px;
+                    transition: all 0.2s;
+                }
+                #settings-close:hover {
+                    color: var(--text);
+                    background: var(--muted-surface);
+                }
             """}</style>
             <div id="settings-modal" class="modal-hidden" role="dialog" aria-modal="true" aria-hidden="true">
               <div class="modal-backdrop" id="settings-backdrop"></div>
@@ -545,8 +592,8 @@ source "main.ch"
                   <label><input type="checkbox" id="opt-bm-modules"> bm-modules (benchmark modules)</label>
                 </div>
                 <footer class="modal-footer">
-                  <button id="settings-cancel">Cancel</button>
-                  <button id="settings-save">Save</button>
+                  <button id="settings-cancel" class="btn btn-secondary">Cancel</button>
+                  <button id="settings-save" class="btn btn-primary">Save Changes</button>
                 </footer>
               </div>
             </div>

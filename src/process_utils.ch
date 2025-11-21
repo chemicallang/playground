@@ -267,6 +267,7 @@ public func launch_exe(args : &std::vector<std::string>) : ProcResult {
             execvp(vec.get(0), (vec.get_ptr(0)) as *mut *char)
             // if exec returns, error
             _exit(127)
+            return result;
         } else {
             // parent
             // close write end, read from read end

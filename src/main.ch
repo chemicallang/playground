@@ -114,6 +114,9 @@ public func main(argc : int, argv : **char) : int {
     var dev_logo = std::string_view("lang/compiled/playground/src/assets/Logo.png")
     var which_logo = if(def.debug) dev_logo else prod_logo
 
+    // checkout the logo
+    printf("logo path : %s\n", which_logo.data());
+
     var main_page = HtmlPage()
     MainPage(main_page)
     main_page.appendTitle("Chemical | Programming Language")
@@ -255,6 +258,8 @@ public func main(argc : int, argv : **char) : int {
 
     // Start serving (blocks)
     srv.serve();
+
+    printf("stopped serving\n")
 
     return 0;
 }

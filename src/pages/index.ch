@@ -30,22 +30,20 @@ func MainPage(page : &mut HtmlPage) {
                     <h2 class="section-title">What is Chemical?</h2>
                     <div class="features-grid">
                         <div class="feature-card fade-in delay-100">
-                            <div class="icon-box">⚡</div>
                             <h3>Native & Fast</h3>
                             <p>Compiles to C and runs via TinyCC or LLVM. No garbage collection means predictable performance.</p>
                         </div>
+                        <!--
                         <div class="feature-card fade-in delay-200">
-                            <div class="icon-box">🛡️</div>
                             <h3>Memory Safe</h3>
                             <p>Designed with memory safety goals to prevent common errors without the overhead of a GC.</p>
                         </div>
+                        -->
                         <div class="feature-card fade-in delay-300">
-                            <div class="icon-box">🎨</div>
                             <h3>Macro Power</h3>
                             <p>First-class support for HTML and CSS macros, parsed by compiler plugins for safe web development.</p>
                         </div>
                         <div class="feature-card fade-in delay-300">
-                            <div class="icon-box">📦</div>
                             <h3>Flexible Build</h3>
                             <p>Built-in build system that handles dependencies and compilation efficiently.</p>
                         </div>
@@ -58,7 +56,6 @@ func MainPage(page : &mut HtmlPage) {
                     <div class="download-grid">
                         <!-- Windows -->
                         <div class="os-card">
-                            <div class="os-icon">🪟</div>
                             <h3>Windows</h3>
                             <div class="download-links">
                                 <a href="https://github.com/chemicallang/chemical/releases/download/v0.0.26/windows-x64.zip" class="download-link">
@@ -80,7 +77,6 @@ func MainPage(page : &mut HtmlPage) {
 
                         <!-- Linux -->
                         <div class="os-card">
-                            <div class="os-icon">🐧</div>
                             <h3>Linux</h3>
                             <div class="download-links">
                                 <a href="https://github.com/chemicallang/chemical/releases/download/v0.0.26/linux-x64.zip" class="download-link">
@@ -100,7 +96,6 @@ func MainPage(page : &mut HtmlPage) {
 
                         <!-- macOS -->
                         <div class="os-card">
-                            <div class="os-icon">🍎</div>
                             <h3>macOS</h3>
                             <div class="download-links">
                                 <a href="https://github.com/chemicallang/chemical/releases/download/v0.0.26/linux-x64.zip" class="download-link">

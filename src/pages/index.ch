@@ -98,7 +98,7 @@ func MainPage(page : &mut HtmlPage) {
                         <div class="os-card">
                             <h3>macOS</h3>
                             <div class="download-links">
-                                <a href="https://github.com/chemicallang/chemical/releases/download/v0.0.26/linux-x64.zip" class="download-link">
+                                <a href="https://github.com/chemicallang/chemical/releases/download/v0.0.26/macos-x64.zip" class="download-link">
                                     <span class="arch">Intel (LLVM)</span>
                                 </a>
                                 <a href="https://github.com/chemicallang/chemical/releases/download/v0.0.26/macos-x64-tcc.zip" class="download-link">

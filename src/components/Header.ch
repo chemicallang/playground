@@ -2,6 +2,18 @@ func Header(page : &mut HtmlPage) {
     #html {
         <!-- Header & Nav -->
         <header>
+          <script>{"""
+            function toggleTheme() {
+                document.body.classList.toggle('light-theme');
+                const isLight = document.body.classList.contains('light-theme');
+                localStorage.setItem('theme', isLight ? 'light' : 'dark');
+            }
+            // Check local storage or preference immediately to avoid flash
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'light') {
+                document.body.classList.add('light-theme');
+            }
+          """}</script>
           <div class="container nav">
             <a href="/" class="logo"><img src="/Logo.png" alt="Logo" height="48px"/>Chemical</a>
             <nav class="nav-links">

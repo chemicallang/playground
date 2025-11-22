@@ -361,6 +361,28 @@ func GlobalStyles(page : &mut HtmlPage) {
               background: var(--bg);
             }
 
+            /* --- SPINNER --- */
+            .spinner {
+                display: inline-block;
+                width: 1em;
+                height: 1em;
+                border: 2px solid currentColor;
+                border-right-color: transparent;
+                border-radius: 50%;
+                animation: spin 0.75s linear infinite;
+                vertical-align: text-bottom;
+                margin-right: 0.5rem;
+            }
+            @keyframes spin {
+                from { transform: rotate(0deg); }
+                to { transform: rotate(360deg); }
+            }
+            .btn:disabled {
+                opacity: 0.7;
+                cursor: not-allowed;
+                pointer-events: none;
+            }
+
             /* --- RESPONSIVE --- */
             @media (max-width: 768px) {
               .hero h1 { font-size: 3rem; }

@@ -39,10 +39,12 @@ func editor_area(page : &mut HtmlPage) : *char {
         outline : 0;
         padding : 1em;
         border : 1px solid var(--border-color);
-        border-radius : 0;
+        border-bottom-left-radius : 8px;
+        border-bottom-right-radius : 8px;
         color: var(--text);
         font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
         font-size: 14px;
+        line-height: 1.5;
     }
 }
 
@@ -55,10 +57,12 @@ func display_editor(page : &mut HtmlPage) : *char {
         outline : 0;
         padding : 1em;
         border : 1px solid var(--border-color);
-        border-radius : 0;
+        border-bottom-left-radius : 8px;
+        border-bottom-right-radius : 8px;
         color : var(--text-muted);
         font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
         font-size: 14px;
+        line-height: 1.5;
     }
 }
 
@@ -80,15 +84,16 @@ func editor_toolbar(page : &mut HtmlPage) : *char {
 
 func editor_tab_button(page : &mut HtmlPage) : *char {
     return #css {
-        padding : 8px 16px;
+        padding : 10px 18px;
         background-color : transparent;
-        border-top-left-radius : 4px;
-        border-top-right-radius : 4px;
+        border-top-left-radius : 6px;
+        border-top-right-radius : 6px;
         border : 1px solid transparent;
         color : var(--text-muted);
         cursor: pointer;
         font-size: 13px;
         font-weight: 500;
+        transition: all 0.2s;
     }
 }
 
@@ -126,6 +131,7 @@ func PlaygroundPage(page : &mut HtmlPage) {
                 border-bottom: 1px solid var(--surface);
                 margin-bottom: -1px;
                 z-index: 10;
+                font-weight: 600;
             }
         """}</style>
         <script>{"""
@@ -435,6 +441,18 @@ source "main.ch"
                 // ------------- settings setup end -------------------------
 
                 let submitBtn = document.getElementById("submit-btn")
+                let submitBtnText = submitBtn.innerText;
+                
+                const setLoading = (isLoading) => {
+                    if(isLoading) {
+                        submitBtn.disabled = true;
+                        submitBtn.innerHTML = '<span class="spinner"></span> Processing...';
+                    } else {
+                        submitBtn.disabled = false;
+                        submitBtn.innerText = submitBtnText;
+                    }
+                }
+
                 submitBtn.addEventListener("click", () => {
                     let savedOutputType = outputType
                     getContentFromEditor()
@@ -451,6 +469,9 @@ source "main.ch"
                         }]
                     }
                     console.log("prepared input, sending", input);
+                    
+                    setLoading(true);
+                    
                     fetch("/submit", {
                         method : "POST",
                         headers : {
@@ -458,6 +479,7 @@ source "main.ch"
                         },
                         body: JSON.stringify(input)
                     }).then((res) => res.json()).then((res) => {
+                        setLoading(false);
                         if(res.type == "error") {
                             displayError("error: " + res.message)
                         } else if(res.type == "output") {
@@ -468,6 +490,10 @@ source "main.ch"
                         } else {
                             displayError("error: unknown output received from server");
                         }
+                    }).catch((err) => {
+                        setLoading(false);
+                        displayError("error: network or server error");
+                        console.error(err);
                     })
                 })
 

@@ -8,18 +8,6 @@ func MainPage(page : &mut HtmlPage) {
             <meta name="keywords" content="chemical, programming language, systems programming, memory safe, no gc, html macro, css macro">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             -->
-            <script>{"""
-                function toggleTheme() {
-                    document.body.classList.toggle('light-theme');
-                    const isLight = document.body.classList.contains('light-theme');
-                    localStorage.setItem('theme', isLight ? 'light' : 'dark');
-                }
-                // Check local storage or preference
-                const savedTheme = localStorage.getItem('theme');
-                if (savedTheme === 'light') {
-                    document.body.classList.add('light-theme');
-                }
-            """}</script>
 
             {GlobalStyles(page)}
             {Header(page)}
@@ -42,18 +30,22 @@ func MainPage(page : &mut HtmlPage) {
                     <h2 class="section-title">What is Chemical?</h2>
                     <div class="features-grid">
                         <div class="feature-card fade-in delay-100">
+                            <div class="icon-box">⚡</div>
                             <h3>Native & Fast</h3>
                             <p>Compiles to C and runs via TinyCC or LLVM. No garbage collection means predictable performance.</p>
                         </div>
                         <div class="feature-card fade-in delay-200">
+                            <div class="icon-box">🛡️</div>
                             <h3>Memory Safe</h3>
                             <p>Designed with memory safety goals to prevent common errors without the overhead of a GC.</p>
                         </div>
                         <div class="feature-card fade-in delay-300">
+                            <div class="icon-box">🎨</div>
                             <h3>Macro Power</h3>
                             <p>First-class support for HTML and CSS macros, parsed by compiler plugins for safe web development.</p>
                         </div>
                         <div class="feature-card fade-in delay-300">
+                            <div class="icon-box">📦</div>
                             <h3>Flexible Build</h3>
                             <p>Built-in build system that handles dependencies and compilation efficiently.</p>
                         </div>
@@ -66,57 +58,62 @@ func MainPage(page : &mut HtmlPage) {
                     <div class="download-grid">
                         <!-- Windows -->
                         <div class="os-card">
+                            <div class="os-icon">🪟</div>
                             <h3>Windows</h3>
                             <div class="download-links">
                                 <a href="https://github.com/chemicallang/chemical/releases/download/v0.0.26/windows-x64.zip" class="download-link">
-                                    x64 (LLVM) <span>Default Backend</span>
+                                    <span class="arch">x64 (LLVM)</span>
+                                    <span class="desc">Default Backend</span>
                                 </a>
                                 <a href="https://github.com/chemicallang/chemical/releases/download/v0.0.26/windows-x64-tcc.zip" class="download-link">
-                                    x64 (TinyCC) <span>Fast Compilation</span>
+                                    <span class="arch">x64 (TinyCC)</span>
+                                    <span class="desc">Fast Compilation</span>
                                 </a>
                                 <a href="https://github.com/chemicallang/chemical/releases/download/v0.0.26/windows-arm64.zip" class="download-link">
-                                    ARM64 (LLVM)
+                                    <span class="arch">ARM64 (LLVM)</span>
                                 </a>
                                 <a href="https://github.com/chemicallang/chemical/releases/download/v0.0.26/windows-arm64-tcc.zip" class="download-link">
-                                    ARM64 (TinyCC)
+                                    <span class="arch">ARM64 (TinyCC)</span>
                                 </a>
                             </div>
                         </div>
 
                         <!-- Linux -->
                         <div class="os-card">
+                            <div class="os-icon">🐧</div>
                             <h3>Linux</h3>
                             <div class="download-links">
                                 <a href="https://github.com/chemicallang/chemical/releases/download/v0.0.26/linux-x64.zip" class="download-link">
-                                    x64 (LLVM)
+                                    <span class="arch">x64 (LLVM)</span>
                                 </a>
                                 <a href="https://github.com/chemicallang/chemical/releases/download/v0.0.26/linux-x64-tcc.zip" class="download-link">
-                                    x64 (TinyCC)
+                                    <span class="arch">x64 (TinyCC)</span>
                                 </a>
                                 <a href="https://github.com/chemicallang/chemical/releases/download/v0.0.26/linux-arm64.zip" class="download-link">
-                                    ARM64 (LLVM)
+                                    <span class="arch">ARM64 (LLVM)</span>
                                 </a>
                                 <a href="https://github.com/chemicallang/chemical/releases/download/v0.0.26/linux-arm64-tcc.zip" class="download-link">
-                                    ARM64 (TinyCC)
+                                    <span class="arch">ARM64 (TinyCC)</span>
                                 </a>
                             </div>
                         </div>
 
                         <!-- macOS -->
                         <div class="os-card">
+                            <div class="os-icon">🍎</div>
                             <h3>macOS</h3>
                             <div class="download-links">
                                 <a href="https://github.com/chemicallang/chemical/releases/download/v0.0.26/linux-x64.zip" class="download-link">
-                                    Intel (LLVM)
+                                    <span class="arch">Intel (LLVM)</span>
                                 </a>
                                 <a href="https://github.com/chemicallang/chemical/releases/download/v0.0.26/macos-x64-tcc.zip" class="download-link">
-                                    Intel (TinyCC)
+                                    <span class="arch">Intel (TinyCC)</span>
                                 </a>
                                 <a href="https://github.com/chemicallang/chemical/releases/download/v0.0.26/macos-arm64.zip" class="download-link">
-                                    Apple Silicon (LLVM)
+                                    <span class="arch">Apple Silicon (LLVM)</span>
                                 </a>
                                 <a href="https://github.com/chemicallang/chemical/releases/download/v0.0.26/macos-arm64-tcc.zip" class="download-link">
-                                    Apple Silicon (TinyCC)
+                                    <span class="arch">Apple Silicon (TinyCC)</span>
                                 </a>
                             </div>
                         </div>

@@ -114,13 +114,17 @@ public func main(argc : int, argv : **char) : int {
     var dev_logo = std::string_view("lang/compiled/playground/src/assets/Logo.png")
     var which_logo = if(def.debug) dev_logo else prod_logo
 
+    var prod_favicon = std::string_view("Favicon.png")
+    var dev_favicon = std::string_view("lang/compiled/playground/src/assets/Favicon.png")
+    var which_favicon = if(def.debug) dev_favicon else prod_favicon
+
     // checkout the logo
     printf("logo path : %s\n", which_logo.data());
 
     var main_page = HtmlPage()
     MainPage(main_page)
     main_page.appendTitle("Chemical | Programming Language")
-    main_page.appendPngFavicon("Logo.png")
+    main_page.appendPngFavicon("Favicon.png")
     var completeMainPage = main_page.toString();
 
     var pgPage = HtmlPage()
@@ -140,6 +144,14 @@ public func main(argc : int, argv : **char) : int {
         res.set_header_view(std::string_view("Content-Type"), std::string_view("text/html; charset=utf-8"));
         res.write_view(completePgPage.to_view());
     }));
+
+    srv.router.add("GET", "/Favicon.png", |&which_favicon|(req, res) => {
+        if (!res.send_file(which_favicon, std::string_view("image/png"))) {
+            res.status = 404u;
+            res.set_header_view(std::string_view("Content-Type"), std::string_view("text/plain"));
+            res.write_string(std::string::make_no_len("Not Found\n"));
+        }
+    })
 
     srv.router.add("GET", "/Logo.png", |&which_logo|(req, res) => {
         if (!res.send_file(which_logo, std::string_view("image/png"))) {

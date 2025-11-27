@@ -124,13 +124,13 @@ public func main(argc : int, argv : **char) : int {
     var main_page = HtmlPage()
     MainPage(main_page)
     main_page.appendTitle("Chemical | Programming Language")
-    main_page.appendPngFavicon("Favicon.png")
+    main_page.appendPngFavicon(which_favicon)
     var completeMainPage = main_page.toString();
 
     var pgPage = HtmlPage()
     PlaygroundPage(pgPage)
     pgPage.appendTitle("Playground | Chemical")
-    pgPage.appendPngFavicon("Logo.png")
+    pgPage.appendPngFavicon(which_favicon)
     var completePgPage = pgPage.toString();
 
     // Register root handler

@@ -426,10 +426,9 @@ source "main.ch"
                     let outputContainer = document.getElementById("output-container")
 
                     const updateTheme = () => {
-                        const style = getComputedStyle(document.documentElement);
-                        const isDark = document.documentElement.classList.contains('dark') || 
-                                     document.body.classList.contains('dark') || 
-                                     (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+                        const isLight = document.body.classList.contains('light-theme');
+                        const isDark = !isLight;
+                        const style = getComputedStyle(document.body)
                         
                         // Read CSS variables
                         const bg = style.getPropertyValue('--bg').trim() || (isDark ? '#1e1e1e' : '#ffffff');
@@ -586,10 +585,10 @@ source "main.ch"
             <div id="settings-modal" class="modal-hidden" role="dialog" aria-modal="true" aria-hidden="true">
               <div class="modal-backdrop" id="settings-backdrop"></div>
               <div class="modal-card" role="document" id="settings-card">
-                <header class="modal-header">
+                <div class="modal-header">
                   <h3>Playground Settings</h3>
                   <button id="settings-close" title="Close">✕</button>
-                </header>
+                </div>
                 <div class="modal-body">
                   <label><input type="checkbox" id="opt-verbose"> verbose (more logs)</label>
                   <label><input type="checkbox" id="opt-use-tcc" checked> use-tcc (run translated c code via tiny cc)</label>
@@ -611,10 +610,10 @@ source "main.ch"
                   <label><input type="checkbox" id="opt-bm-files"> bm-files (benchmark files)</label>
                   <label><input type="checkbox" id="opt-bm-modules"> bm-modules (benchmark modules)</label>
                 </div>
-                <footer class="modal-footer">
+                <div class="modal-footer">
                   <button id="settings-cancel" class="btn btn-secondary">Cancel</button>
                   <button id="settings-save" class="btn btn-primary">Save Changes</button>
-                </footer>
+                </div>
               </div>
             </div>
 

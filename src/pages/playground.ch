@@ -37,14 +37,10 @@ func editor_area(page : &mut HtmlPage) : *char {
         min-height : 80vh;
         background-color : var(--surface);
         outline : 0;
-        padding : 1em;
         border : 1px solid var(--border-color);
         border-bottom-left-radius : 8px;
         border-bottom-right-radius : 8px;
-        color: var(--text);
-        font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
-        font-size: 14px;
-        line-height: 1.5;
+        overflow: hidden;
     }
 }
 
@@ -55,14 +51,10 @@ func display_editor(page : &mut HtmlPage) : *char {
         min-height : 80vh;
         background-color : var(--bg);
         outline : 0;
-        padding : 1em;
         border : 1px solid var(--border-color);
         border-bottom-left-radius : 8px;
         border-bottom-right-radius : 8px;
-        color : var(--text-muted);
-        font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
-        font-size: 14px;
-        line-height: 1.5;
+        overflow: hidden;
     }
 }
 
@@ -71,6 +63,7 @@ func editor_container(page : &mut HtmlPage) : *char {
         display : flex;
         flex-direction : column;
         flex : 1;
+        min-width: 0;
     }
 }
 
@@ -152,6 +145,10 @@ func PlaygroundPage(page : &mut HtmlPage) {
             ]
         }
         """}</script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.min.js"></script>
+        <script>{"""
+        require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs' }});
+        """}</script>
         <script>window.strListMapTabs = create_tabs_from_comp_set(`{strListMapCompSet.main}`, `{strListMapCompSet.mod}`)</script>
         <script>window.exprStrTabs = create_tabs_from_comp_set(`{exprStrCompSet.main}`, `{exprStrCompSet.mod}`)</script>
         <script>window.embeddedLangsTabs = create_tabs_from_comp_set(`{embeddedLangsCompSet.main}`, `{embeddedLangsCompSet.mod}`)</script>
@@ -177,6 +174,32 @@ source "main.ch"
             let compilerOutputText = ""
             let assemblyOutputText = ""
 
+            let inputEditor = null;
+            let outputEditor = null;
+
+            // Settings Logic
+            const showSettings = () => {
+                document.getElementById('settings-modal').classList.remove('modal-hidden');
+            }
+            
+            const hideSettings = () => {
+                document.getElementById('settings-modal').classList.add('modal-hidden');
+            }
+
+            const collectSettings = () => {
+                return {
+                    verbose: document.getElementById('opt-verbose').checked,
+                    useTcc: document.getElementById('opt-use-tcc').checked,
+                    debugIr: document.getElementById('opt-debug-ir').checked,
+                    fnoUnwindTables: document.getElementById('opt-fno-unwind-tables').checked,
+                    mode: document.getElementById('opt-mode').value,
+                    lto: document.getElementById('opt-lto').checked,
+                    benchmark: document.getElementById('opt-benchmark').checked,
+                    bmFiles: document.getElementById('opt-bm-files').checked,
+                    bmModules: document.getElementById('opt-bm-modules').checked
+                };
+            }
+
             document.addEventListener("DOMContentLoaded", () => {
 
                 let errorBox = document.getElementById("error-box")
@@ -188,16 +211,16 @@ source "main.ch"
                 let coOutBtn = document.getElementById("output-type-compiler-btn")
                 let opAsmBtn = document.getElementById("output-type-asm-btn")
 
-                let editor = document.getElementById("editor")
-                let output = document.getElementById("output")
-
                 let mainFileBtn = document.getElementById("main-file-btn")
                 let modFileBtn = document.getElementById("mod-file-btn")
 
                 let settingsBtn = document.getElementById("settings-btn")
+                let submitBtn = document.getElementById("submit-btn")
 
                 tabs[0].btnElem = mainFileBtn;
                 tabs[1].btnElem = modFileBtn;
+
+                // --- Helper Functions ---
 
                 const displayError = (text) => {
                     errorBoxMsg.innerHTML = text
@@ -209,91 +232,77 @@ source "main.ch"
 
                 const getOutputButton = () => {
                     switch(outputType) {
-                        case 0:
-                            return opOutBtn;
-                        case 1:
-                            return opIrBtn;
-                        case 2:
-                            return opCBtn;
-                        case 3:
-                            return coOutBtn;
-                        case 4:
-                            return opAsmBtn;
-                        default:
-                            console.error("1: unknown output type", outputType)
-                            return null;
+                        case 0: return opOutBtn;
+                        case 1: return opIrBtn;
+                        case 2: return opCBtn;
+                        case 3: return coOutBtn;
+                        case 4: return opAsmBtn;
+                        default: return null;
                     }
                 }
 
                 const getOutputText = () => {
                     switch(outputType) {
-                        case 0:
-                            return mainOutputText;
-                        case 1:
-                            return llvmIrOutputText;
-                        case 2:
-                            return cTranslationOutputText;
-                        case 3:
-                            return compilerOutputText;
-                        case 4:
-                            return assemblyOutputText;
-                        default:
-                            console.error("2: unknown output type", outputType);
-                            return ""
+                        case 0: return mainOutputText;
+                        case 1: return llvmIrOutputText;
+                        case 2: return cTranslationOutputText;
+                        case 3: return compilerOutputText;
+                        case 4: return assemblyOutputText;
+                        default: return ""
                     }
                 }
 
                 const setOutputText = (type, text) => {
                     switch(type) {
-                        case 0:
-                            mainOutputText = text;
-                            break;
-                        case 1:
-                            llvmIrOutputText = text;
-                            break;
-                        case 2:
-                            cTranslationOutputText = text;
-                            break;
-                        case 3:
-                            compilerOutputText = text;
-                            break;
-                        case 4:
-                            assemblyOutputText = text
-                            break;
-                        default:
-                            console.error("3: unknown output type", outputType);
-                            return;
+                        case 0: mainOutputText = text; break;
+                        case 1: llvmIrOutputText = text; break;
+                        case 2: cTranslationOutputText = text; break;
+                        case 3: compilerOutputText = text; break;
+                        case 4: assemblyOutputText = text; break;
+                        default: return;
                     }
-                    if(outputType == type) {
-                        output.value = text
+                    if(outputType == type && outputEditor) {
+                        outputEditor.setValue(text);
                     }
-                }
-                const setOutputState = () => {
-                    getOutputButton().classList.toggle("active")
-                }
-                const setEditorState = () => {
-                    let tab = tabs[activeTab]
-                    editor.value = tab.content
-                    tab.btnElem.classList.toggle("active")
                 }
 
-                setOutputState()
-                setEditorState()
+                const setOutputState = () => {
+                    let btn = getOutputButton();
+                    if(btn) btn.classList.toggle("active")
+                }
+
+                const setEditorState = () => {
+                    let tab = tabs[activeTab]
+                    if(inputEditor) inputEditor.setValue(tab.content)
+                    if(tab.btnElem) tab.btnElem.classList.toggle("active")
+                }
+                
+                const getContentFromEditor = () => {
+                    if(inputEditor) tabs[activeTab].content = inputEditor.getValue()
+                }
+
+                // --- Event Listeners ---
 
                 const onOutputBtnClick = (type) => {
                     setOutputState()
                     outputType = type;
                     setOutputState()
-                    output.value = getOutputText()
+                    if(outputEditor) {
+                        const text = getOutputText();
+                        outputEditor.setValue(text);
+                        
+                        let lang = 'cpp';
+                        if (type === 0 || type === 1 || type === 3) lang = 'plaintext';
+                        if (type === 4) lang = 'mips';
+                        monaco.editor.setModelLanguage(outputEditor.getModel(), lang);
+                    }
                 }
+
                 const onFileBtnClick = (tabIndex) => {
-                    tabs[activeTab].content = editor.value
+                    getContentFromEditor()
                     tabs[activeTab].btnElem.classList.toggle("active")
                     activeTab = tabIndex
                     setEditorState()
-                }
-                const getContentFromEditor = () => {
-                    tabs[activeTab].content = editor.value
                 }
 
                 function setTabs(newTabs) {
@@ -301,25 +310,21 @@ source "main.ch"
                     tabs[0].btnElem = mainFileBtn
                     tabs[1].btnElem = modFileBtn;
                     activeTab = 0
-                    editor.value = tabs[0].content
+                    if(inputEditor) inputEditor.setValue(tabs[0].content)
+                    
+                    mainFileBtn.classList.remove("active");
+                    modFileBtn.classList.remove("active");
+                    tabs[0].btnElem.classList.add("active");
                 }
 
                 const select = document.getElementById('examples');
                 select.addEventListener('change', () => {
                     const val = select.value;
                     switch (val) {
-                        case '1':
-                            setTabs(window.mostBasicTabs);
-                            break;
-                        case '2':
-                            setTabs(window.strListMapTabs);
-                            break;
-                        case '3':
-                            setTabs(window.exprStrTabs);
-                            break;
-                        case '4':
-                            setTabs(window.embeddedLangsTabs);
-                            break;
+                        case '1': setTabs(window.mostBasicTabs); break;
+                        case '2': setTabs(window.strListMapTabs); break;
+                        case '3': setTabs(window.exprStrTabs); break;
+                        case '4': setTabs(window.embeddedLangsTabs); break;
                     }
                 });
 
@@ -329,12 +334,11 @@ source "main.ch"
                 let fileAdderBtn = document.getElementById("file-adder-btn")
                 fileAdderBtn.addEventListener("click", () => {
                     let fileName = prompt("file name:")
-                    if(fileName == "") return;
+                    if(!fileName) return;
                     var clonedButton = fileAdderBtn.cloneNode()
                     fileAdderBtn.parentElement.insertBefore(clonedButton, fileAdderBtn)
                     clonedButton.innerText = fileName;
                     const index = tabs.length;
-                    console.log("new button index", index)
                     clonedButton.addEventListener("click", () => { onFileBtnClick(index) })
                     tabs = [...tabs, {
                         name : fileName,
@@ -343,106 +347,22 @@ source "main.ch"
                         content : ""
                     }]
                 })
-                opOutBtn.addEventListener("click", () => {
-                    // 0 -> output
-                    onOutputBtnClick(0)
-                })
 
-                opIrBtn.addEventListener("click", () => {
-                    // 1 -> llvm ir
-                    onOutputBtnClick(1)
-                })
+                opOutBtn.addEventListener("click", () => { onOutputBtnClick(0) })
+                opIrBtn.addEventListener("click", () => { onOutputBtnClick(1) })
+                opCBtn.addEventListener("click", () => { onOutputBtnClick(2) })
+                coOutBtn.addEventListener("click", () => { onOutputBtnClick(3) })
+                opAsmBtn.addEventListener("click", () => { onOutputBtnClick(4) })
 
-                opCBtn.addEventListener("click", () => {
-                    // 2 -> c translation
-                    onOutputBtnClick(2)
-                })
+                // Settings
+                if(settingsBtn) settingsBtn.addEventListener("click", showSettings);
+                document.getElementById('settings-close').addEventListener('click', hideSettings);
+                document.getElementById('settings-cancel').addEventListener('click', hideSettings);
+                document.getElementById('settings-save').addEventListener('click', hideSettings);
+                document.getElementById('settings-backdrop').addEventListener('click', hideSettings);
 
-                coOutBtn.addEventListener("click", () => {
-                    // 3 -> compiler output
-                    onOutputBtnClick(3)
-                })
-
-                opAsmBtn.addEventListener("click", () => {
-                    // 4 -> assembly output
-                    onOutputBtnClick(4)
-                })
-
-                // ------------- settings setup
-
-                // call `showSettings()` to open the dialog (e.g. hook to your Settings button)
-                  function showSettings() {
-                    document.getElementById('settings-modal').classList.remove('modal-hidden');
-                    document.getElementById('settings-modal').setAttribute('aria-hidden','false');
-                  }
-                  function hideSettings() {
-                    document.getElementById('settings-modal').classList.add('modal-hidden');
-                    document.getElementById('settings-modal').setAttribute('aria-hidden','true');
-                  }
-                  // Wire up buttons (run once at page load)
-                  (function(){
-                    const openBtn = document.getElementById('settings-button'); // your existing settings button should have this id
-                    if (openBtn) openBtn.addEventListener('click', showSettings);
-                    document.getElementById('settings-close').addEventListener('click', hideSettings);
-                    document.getElementById('settings-backdrop').addEventListener('click', hideSettings);
-                    document.getElementById('settings-cancel').addEventListener('click', hideSettings);
-                    document.getElementById('settings-save').addEventListener('click', () => {
-                      // persist in-memory (you can also save to localStorage if desired)
-                      window.playgroundSettings = collectSettings();
-                      hideSettings();
-                    });
-
-                    // load defaults
-                    window.playgroundSettings = {
-                      verbose: false,
-                      use_tcc: true,
-                      debug_ir: false,
-                      fno_unwind_tables: false,
-                      mode: 'debug',
-                      lto: false,
-                      benchmark: false,
-                      bm_files: false,
-                      bm_modules: false
-                    };
-
-                    // optionally populate the form from window.playgroundSettings if you store defaults
-                    function populateForm() {
-                      const s = window.playgroundSettings;
-                      document.getElementById('opt-verbose').checked = !!s.verbose;
-                      document.getElementById('opt-use-tcc').checked = !!s.use_tcc;
-                      document.getElementById('opt-debug-ir').checked = !!s.debug_ir;
-                      document.getElementById('opt-fno-unwind-tables').checked = !!s.fno_unwind_tables;
-                      document.getElementById('opt-mode').value = s.mode || 'debug';
-                      document.getElementById('opt-lto').checked = !!s.lto;
-                      document.getElementById('opt-benchmark').checked = !!s.benchmark;
-                      document.getElementById('opt-bm-files').checked = !!s.bm_files;
-                      document.getElementById('opt-bm-modules').checked = !!s.bm_modules;
-                    }
-                    populateForm();
-                  })();
-
-                  // collects the settings object to include in submit payload
-                  function collectSettings() {
-                    return {
-                      verbose: document.getElementById('opt-verbose').checked,
-                      use_tcc: document.getElementById('opt-use-tcc').checked,
-                      debug_ir: document.getElementById('opt-debug-ir').checked,
-                      fno_unwind_tables: document.getElementById('opt-fno-unwind-tables').checked,
-                      mode: document.getElementById('opt-mode').value,
-                      lto: document.getElementById('opt-lto').checked,
-                      benchmark: document.getElementById('opt-benchmark').checked,
-                      bm_files: document.getElementById('opt-bm-files').checked,
-                      bm_modules: document.getElementById('opt-bm-modules').checked
-                    };
-                  }
-
-                  settingsBtn.addEventListener("click", showSettings);
-
-                // ------------- settings setup end -------------------------
-
-                let submitBtn = document.getElementById("submit-btn")
+                // Submit
                 let submitBtnText = submitBtn.innerText;
-                
                 const setLoading = (isLoading) => {
                     if(isLoading) {
                         submitBtn.disabled = true;
@@ -454,6 +374,10 @@ source "main.ch"
                 }
 
                 submitBtn.addEventListener("click", () => {
+                    if(!inputEditor) {
+                        console.error("Editor not initialized");
+                        return;
+                    }
                     let savedOutputType = outputType
                     getContentFromEditor()
                     let input = {
@@ -468,15 +392,12 @@ source "main.ch"
                             content : tab.content
                         }]
                     }
-                    console.log("prepared input, sending", input);
                     
                     setLoading(true);
                     
                     fetch("/submit", {
                         method : "POST",
-                        headers : {
-                            'Content-Type': 'application/json'
-                        },
+                        headers : { 'Content-Type': 'application/json' },
                         body: JSON.stringify(input)
                     }).then((res) => res.json()).then((res) => {
                         setLoading(false);
@@ -497,6 +418,79 @@ source "main.ch"
                     })
                 })
 
+                // --- Monaco Initialization ---
+
+                require(['vs/editor/editor.main'], function () {
+                    
+                    let editorContainer = document.getElementById("editor-container")
+                    let outputContainer = document.getElementById("output-container")
+
+                    const updateTheme = () => {
+                        const style = getComputedStyle(document.documentElement);
+                        const isDark = document.documentElement.classList.contains('dark') || 
+                                     document.body.classList.contains('dark') || 
+                                     (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+                        
+                        // Read CSS variables
+                        const bg = style.getPropertyValue('--bg').trim() || (isDark ? '#1e1e1e' : '#ffffff');
+                        const surface = style.getPropertyValue('--surface').trim() || (isDark ? '#252526' : '#f3f3f3');
+                        const text = style.getPropertyValue('--text').trim() || (isDark ? '#d4d4d4' : '#000000');
+                        const border = style.getPropertyValue('--border-color').trim();
+
+                        monaco.editor.defineTheme('chemical-theme', {
+                            base: isDark ? 'vs-dark' : 'vs',
+                            inherit: true,
+                            rules: [
+                                { background: bg.replace('#', '') }
+                            ],
+                            colors: {
+                                'editor.background': bg,
+                                'editor.foreground': text,
+                                'editor.lineHighlightBackground': surface,
+                                'editor.selectionBackground': surface,
+                                'editor.inactiveSelectionBackground': surface,
+                            }
+                        });
+                        monaco.editor.setTheme('chemical-theme');
+                    };
+
+                    updateTheme();
+
+                    inputEditor = monaco.editor.create(editorContainer, {
+                        value: tabs[0].content,
+                        language: 'rust',
+                        theme: 'chemical-theme',
+                        automaticLayout: true,
+                        minimap: { enabled: false },
+                        scrollBeyondLastLine: false,
+                        fontSize: 14,
+                        fontFamily: "'Menlo', 'Monaco', 'Courier New', monospace"
+                    });
+
+                    outputEditor = monaco.editor.create(outputContainer, {
+                        value: "",
+                        language: 'plaintext',
+                        theme: 'chemical-theme',
+                        readOnly: true,
+                        automaticLayout: true,
+                        minimap: { enabled: false },
+                        scrollBeyondLastLine: false,
+                        fontSize: 14,
+                        fontFamily: "'Menlo', 'Monaco', 'Courier New', monospace"
+                    });
+
+                    // Observer for theme changes
+                    const observer = new MutationObserver((mutations) => {
+                        updateTheme();
+                    });
+                    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class', 'style'] });
+                    observer.observe(document.body, { attributes: true, attributeFilter: ['class', 'style'] });
+
+                    // Initial button state
+                    tabs[activeTab].btnElem.classList.add("active")
+                    setOutputState()
+
+                }); // End require
             })
         """}</script>
         <div>
@@ -505,7 +499,7 @@ source "main.ch"
             <div id="error-box" class={error_box_container(page)}>
                 <div id="error-box-msg" class={error_msg_container(page)}></div>
             </div>
-            <div class={textarea_container(page)} style="flex-wrap: wrap;">
+            <div class={textarea_container(page)}>
                 <style>{"""
                     @media (max-width: 768px) {
                         ."""}{textarea_container(page)}{""" {
@@ -528,7 +522,7 @@ source "main.ch"
                         <button id="mod-file-btn" class={editor_tab_button(page)}>chemical.mod</button>
                         <button id="file-adder-btn" class={editor_tab_button(page)}>+</button>
                     </div>
-                    <textarea id="editor" class={editor_area(page)}></textarea>
+                    <div id="editor-container" class={editor_area(page)}></div>
                 </div>
                 <div class={editor_container(page)}>
                     <div class={editor_toolbar(page)}>
@@ -542,7 +536,7 @@ source "main.ch"
                             <button id="submit-btn" class={editor_tab_button_primary(page)}>Submit</button>
                         </div>
                     </div>
-                    <textarea id="output" class={display_editor(page)} placeholder="Press the submit button"></textarea>
+                    <div id="output-container" class={display_editor(page)}></div>
                 </div>
             </div>
 
@@ -600,7 +594,7 @@ source "main.ch"
                   <label><input type="checkbox" id="opt-verbose"> verbose (more logs)</label>
                   <label><input type="checkbox" id="opt-use-tcc"> use-tcc (run translated c code via tiny cc)</label>
                   <label><input type="checkbox" id="opt-debug-ir"> debug-ir (produce debug version of IR)</label>
-                  <label><input type="checkbox" id="opt-fno-unwind-tables"> fno-unwind-tables (improve IR when disabled)</label>
+                  <label><input type="checkbox" id="opt-fno-unwind-tables"> fno-unwind-tables (readable IR)</label>
                   <label>
                     mode
                     <select id="opt-mode">

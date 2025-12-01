@@ -189,14 +189,14 @@ source "main.ch"
             const collectSettings = () => {
                 return {
                     verbose: document.getElementById('opt-verbose').checked,
-                    useTcc: document.getElementById('opt-use-tcc').checked,
-                    debugIr: document.getElementById('opt-debug-ir').checked,
-                    fnoUnwindTables: document.getElementById('opt-fno-unwind-tables').checked,
+                    use_tcc: document.getElementById('opt-use-tcc').checked,
+                    debug_ir: document.getElementById('opt-debug-ir').checked,
+                    fno_unwind_tables: document.getElementById('opt-fno-unwind-tables').checked,
                     mode: document.getElementById('opt-mode').value,
                     lto: document.getElementById('opt-lto').checked,
                     benchmark: document.getElementById('opt-benchmark').checked,
-                    bmFiles: document.getElementById('opt-bm-files').checked,
-                    bmModules: document.getElementById('opt-bm-modules').checked
+                    bm_files: document.getElementById('opt-bm-files').checked,
+                    bm_modules: document.getElementById('opt-bm-modules').checked
                 };
             }
 
@@ -592,7 +592,7 @@ source "main.ch"
                 </header>
                 <div class="modal-body">
                   <label><input type="checkbox" id="opt-verbose"> verbose (more logs)</label>
-                  <label><input type="checkbox" id="opt-use-tcc"> use-tcc (run translated c code via tiny cc)</label>
+                  <label><input type="checkbox" id="opt-use-tcc" checked> use-tcc (run translated c code via tiny cc)</label>
                   <label><input type="checkbox" id="opt-debug-ir"> debug-ir (produce debug version of IR)</label>
                   <label><input type="checkbox" id="opt-fno-unwind-tables"> fno-unwind-tables (readable IR)</label>
                   <label>

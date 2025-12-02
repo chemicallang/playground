@@ -2,7 +2,7 @@
 find /home/playground/app -maxdepth 1 -type d -name "play-*" -exec rm -rf {} +
 
 # upload the executable, please replace YOUR_IP_ADDRESS before doing this
-scp /path/to/new/playground USERNAME@YOUR_IP_ADDRESS:/home/playground/app/playground.new
+scp playground USERNAME@YOUR_IP_ADDRESS:/home/playground/app/playground.new
 
 # set permissions to uploaded executable
 cd /home/playground/app

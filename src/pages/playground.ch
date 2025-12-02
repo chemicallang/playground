@@ -196,7 +196,8 @@ source "main.ch"
                     lto: document.getElementById('opt-lto').checked,
                     benchmark: document.getElementById('opt-benchmark').checked,
                     bm_files: document.getElementById('opt-bm-files').checked,
-                    bm_modules: document.getElementById('opt-bm-modules').checked
+                    bm_modules: document.getElementById('opt-bm-modules').checked,
+                    version: document.getElementById('opt-version').value
                 };
             }
 
@@ -590,21 +591,28 @@ source "main.ch"
                   <button id="settings-close" title="Close">✕</button>
                 </div>
                 <div class="modal-body">
-                  <label><input type="checkbox" id="opt-verbose"> verbose (more logs)</label>
-                  <label><input type="checkbox" id="opt-use-tcc" checked> use-tcc (run translated c code via tiny cc)</label>
-                  <label><input type="checkbox" id="opt-debug-ir"> debug-ir (produce debug version of IR)</label>
-                  <label><input type="checkbox" id="opt-fno-unwind-tables"> fno-unwind-tables (readable IR)</label>
                   <label>
-                    mode
-                    <select id="opt-mode">
+                    Compiler Version
+                    <select id="opt-version">
+                      <option value="27" selected>v0.0.27</option>
+                      <option value="26">v0.0.26</option>
+                    </select>
+                  </label>
+                  <label>
+                  mode
+                  <select id="opt-mode">
                       <option value="debug_quick">debug_quick</option>
                       <option value="debug">debug</option>
                       <option value="debug_complete">debug_complete</option>
                       <option value="release">release</option>
                       <option value="release_fast">release_fast</option>
                       <option value="release_small">release_small</option>
-                    </select>
-                  </label>
+                  </select>
+                </label>
+                  <label><input type="checkbox" id="opt-verbose"> verbose (more logs)</label>
+                  <label><input type="checkbox" id="opt-use-tcc" checked> use-tcc (run translated c code via tiny cc)</label>
+                  <label><input type="checkbox" id="opt-debug-ir"> debug-ir (produce debug version of IR)</label>
+                  <label><input type="checkbox" id="opt-fno-unwind-tables"> fno-unwind-tables (readable IR)</label>
                   <label><input type="checkbox" id="opt-lto"> lto (link time optimization)</label>
                   <label><input type="checkbox" id="opt-benchmark"> benchmark (benchmark compilation)</label>
                   <label><input type="checkbox" id="opt-bm-files"> bm-files (benchmark files)</label>

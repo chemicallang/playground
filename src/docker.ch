@@ -17,6 +17,7 @@ public struct CompileSettings {
     var benchmark : bool = false;
     var bm_files : bool = false;
     var bm_modules : bool = false;
+    var version : int = 27;
 }
 
 func write_entrypoint_script_new(settings : &CompileSettings, outputType : OutputType, host_dir : std::string) : std::Result<UnitTy, fs::FsError> {
@@ -149,7 +150,7 @@ func docker_timeout_worker_fn(arg : *void) : *void {
     return null
 }
 
-public func run_docker(container_name: &std.string, host_dir: &std.string) : ExecResult {
+public func run_docker(container_name: &std.string, host_dir: &std.string, image_name: &std.string) : ExecResult {
 
     var docker_cmd = std::string()
     // Use conservative flags (see my previous message). You can tweak memory/cpus.
@@ -167,14 +168,15 @@ public func run_docker(container_name: &std.string, host_dir: &std.string) : Exe
     docker_cmd.append_view(std::string_view(" -v \""))
     docker_cmd.append_string(host_dir)
     docker_cmd.append_view(std::string_view(":/work:rw\" "))
-    docker_cmd.append_view(std::string_view("chemicallang/chemical:v0.0.26-ubuntu sh /work/run_compile.sh"))
+    docker_cmd.append_string(image_name)
+    docker_cmd.append_view(std::string_view(" sh /work/run_compile.sh"))
 
     // run the docker command using your run_command helper (captures combined stdout+stderr)
     return run_command(docker_cmd.to_view())
 
 }
 
-public func run_docker_with_timeout(container_name: &std.string, host_dir: &std.string, timeout_ms: ulong) : ExecResult {
+public func run_docker_with_timeout(container_name: &std.string, host_dir: &std.string, image_name: &std.string, timeout_ms: ulong) : ExecResult {
     var res_promise = malloc(sizeof(std.concurrent.Promise<ExecResult>)) as *mut std.concurrent.Promise<ExecResult>;
     new(res_promise) std.concurrent.Promise<ExecResult>();
 
@@ -195,7 +197,8 @@ public func run_docker_with_timeout(container_name: &std.string, host_dir: &std.
    docker_cmd.append_view(std::string_view(" -v \""))
    docker_cmd.append_string(host_dir)
    docker_cmd.append_view(std::string_view(":/work:rw\" "))
-   docker_cmd.append_view(std::string_view("chemicallang/chemical:v0.0.26-ubuntu sh /work/run_compile.sh"))
+   docker_cmd.append_string(image_name)
+   docker_cmd.append_view(std::string_view(" sh /work/run_compile.sh"))
 
     var cap = docker_worker_captured {
         docker_cmd : &docker_cmd,
@@ -415,8 +418,20 @@ func compile_files_in_docker(settings : &CompileSettings, outputType : OutputTyp
     container_name.append_view(std::string_view("chemical-play-"))
     container_name.append_view(dir_name)
 
+    var image_name = std::string()
+    image_name.append_view(std::string_view("chemicallang/chemical:v0.0."))
+    switch(settings.version) {
+        27, default => {
+            image_name.append_view(std::string_view("27"))
+        }
+        26 => {
+           image_name.append_view(std::string_view("26")); 
+        }
+    }
+    image_name.append_view(std::string_view("-ubuntu"))
+
     // run the docker command using your run_command helper (captures combined stdout+stderr)
-    var procRes = run_docker_with_timeout(container_name, host_dir, 60u * 1000u)
+    var procRes = run_docker_with_timeout(container_name, host_dir, image_name, 60u * 1000u)
     // procRes.status is exit code of docker run (if docker CLI succeeded it will be the exit code of the process inside container).
     // procRes.output is combined stdout+stderr from docker run
 

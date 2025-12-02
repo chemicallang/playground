@@ -241,6 +241,18 @@ public func main(argc : int, argv : **char) : int {
                             if (s_bmfiles != null && s_bmfiles is JsonValue.Bool) { var Bool(b) = *s_bmfiles else unreachable; settings.bm_files = b; }
                             const s_bmmod = smap.get_ptr(std::string("bm_modules"));
                             if (s_bmmod != null && s_bmmod is JsonValue.Bool) { var Bool(b) = *s_bmmod else unreachable; settings.bm_modules = b; }
+                            const s_version = smap.get_ptr(std::string("version"));
+                            if (s_version != null && s_version is JsonValue.String) {
+                                var String(v_str) = *s_version else unreachable;
+                                switch(fnv1_hash_view(v_str.to_view())) {
+                                    comptime_fnv1_hash("27"), default => {
+                                        settings.version = 27;
+                                    }
+                                    comptime_fnv1_hash("26") => {
+                                        settings.version = 26;
+                                    }
+                                }
+                            }
                         }
 
                         var result = compile_files_in_docker(settings, ot, files)

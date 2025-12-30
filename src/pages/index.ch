@@ -3,12 +3,11 @@ import "@html/page.ch"
 func MainPage(page : &mut HtmlPage) {
     #html {
         <div>
-            <!-- 
-            <meta name="description" content="Chemical is a native, memory-safe systems programming language with no garbage collection and built-in HTML/CSS macros.">
-            <meta name="keywords" content="chemical, programming language, systems programming, memory safe, no gc, html macro, css macro">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            -->
-
+            <head>
+                <meta name="description" content="Chemical is a native, memory-safe systems programming language with no garbage collection and built-in HTML/CSS macros.">
+                <meta name="keywords" content="chemical, programming language, systems programming, memory safe, no gc, html macro, css macro">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            </head>
             {GlobalStyles(page)}
             {Header(page)}
             <div class="hero">

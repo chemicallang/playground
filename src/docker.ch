@@ -17,7 +17,7 @@ public struct CompileSettings {
     var benchmark : bool = false;
     var bm_files : bool = false;
     var bm_modules : bool = false;
-    var version : int = 27;
+    var version : int = 28;
 }
 
 func write_entrypoint_script_new(settings : &CompileSettings, outputType : OutputType, host_dir : std::string) : std::Result<UnitTy, fs::FsError> {
@@ -421,7 +421,10 @@ func compile_files_in_docker(settings : &CompileSettings, outputType : OutputTyp
     var image_name = std::string()
     image_name.append_view(std::string_view("chemicallang/chemical:v0.0."))
     switch(settings.version) {
-        27, default => {
+        28, default => {
+            image_name.append_view(std::string_view("28"))
+        }
+        27 => {
             image_name.append_view(std::string_view("27"))
         }
         26 => {

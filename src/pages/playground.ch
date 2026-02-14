@@ -599,7 +599,7 @@ source "main.ch"
                     Compiler Version
                     <select id="opt-version">
                       <option value="29" selected>v0.0.29</option>
-                      <option value="28" selected>v0.0.28</option>
+                      <option value="28">v0.0.28</option>
                       <option value="27">v0.0.27</option>
                     </select>
                   </label>

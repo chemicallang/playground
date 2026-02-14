@@ -5,11 +5,11 @@ if (def.windows) {
     @extern @dllimport @stdcall public func SetHandleInformation(hObject : HANDLE, dwMask : DWORD, dwFlags : DWORD) : BOOL;
     // @extern @dllimport @stdcall public func CreateProcessA(lpApplicationName : *char, lpCommandLine : *mut char, lpProcessAttributes : *mut void, lpThreadAttributes : *mut void, bInheritHandles : BOOL, dwCreationFlags : DWORD, lpEnvironment : *mut void, lpCurrentDirectory : *char, lpStartupInfo : *mut STARTUPINFOA, lpProcessInformation : *mut PROCESS_INFORMATION) : BOOL;
     // @extern @dllimport @stdcall public func CloseHandle(hObject : HANDLE) : BOOL;
-    @extern @dllimport @stdcall public func GetLastError() : DWORD;
-    @extern @dllimport @stdcall public func WaitForSingleObject(hHandle : HANDLE, dwMilliseconds : DWORD) : DWORD;
+    // @extern @dllimport @stdcall public func GetLastError() : DWORD;
+    // @extern @dllimport @stdcall public func WaitForSingleObject(hHandle : HANDLE, dwMilliseconds : DWORD) : DWORD;
     // @extern @dllimport @stdcall public func GetExitCodeProcess(hProcess : HANDLE, lpExitCode : *mut DWORD) : BOOL;
     // @extern @dllimport @stdcall public func ReadFile(hFile : HANDLE, lpBuffer : *mut void, nNumberOfBytesToRead : DWORD, lpNumberOfBytesRead : *mut DWORD, lpOverlapped : *mut void) : BOOL;
-    @extern @dllimport @stdcall public func GetStdHandle(nStdHandle : DWORD) : HANDLE;
+    // @extern @dllimport @stdcall public func GetStdHandle(nStdHandle : DWORD) : HANDLE;
 
     // used with STARTUPINFO.dwFlags
     const STARTF_USESTDHANDLES : DWORD = 0x00000100u;
@@ -22,9 +22,9 @@ if (def.windows) {
     // STD_INPUT_HANDLE  = -10
     // STD_OUTPUT_HANDLE = -11
     // STD_ERROR_HANDLE  = -12
-    const STD_INPUT_HANDLE  : int = -10;
-    const STD_OUTPUT_HANDLE : int = -11;
-    const STD_ERROR_HANDLE  : int = -12;
+    // const STD_INPUT_HANDLE  : int = -10;
+    // const STD_OUTPUT_HANDLE : int = -11;
+    // const STD_ERROR_HANDLE  : int = -12;
 
     // used with WaitForSingleObject
     const INFINITE : DWORD = 0xFFFFFFFFu;

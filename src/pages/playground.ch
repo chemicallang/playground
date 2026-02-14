@@ -199,7 +199,8 @@ source "main.ch"
                     benchmark: document.getElementById('opt-benchmark').checked,
                     bm_files: document.getElementById('opt-bm-files').checked,
                     bm_modules: document.getElementById('opt-bm-modules').checked,
-                    version: document.getElementById('opt-version').value
+                    version: document.getElementById('opt-version').value,
+                    process_commands: document.getElementById('opt-process-commands').checked
                 };
             }
 
@@ -213,6 +214,7 @@ source "main.ch"
                 let opCBtn = document.getElementById("output-type-c-btn")
                 let coOutBtn = document.getElementById("output-type-compiler-btn")
                 let opAsmBtn = document.getElementById("output-type-asm-btn")
+                let webviewBtn = document.getElementById("output-type-webview-btn")
 
                 let mainFileBtn = document.getElementById("main-file-btn")
                 let modFileBtn = document.getElementById("mod-file-btn")
@@ -240,6 +242,7 @@ source "main.ch"
                         case 2: return opCBtn;
                         case 3: return coOutBtn;
                         case 4: return opAsmBtn;
+                        case 5: return webviewBtn;
                         default: return null;
                     }
                 }
@@ -290,7 +293,19 @@ source "main.ch"
                     setOutputState()
                     outputType = type;
                     setOutputState()
-                    if(outputEditor) {
+                    
+                    let outputContainerDOM = document.getElementById("output-container")
+                    let webviewFrameDOM = document.getElementById("webview-frame")
+
+                    if (type === 5) {
+                        outputContainerDOM.style.display = "none"
+                        webviewFrameDOM.style.display = "block"
+                    } else {
+                        outputContainerDOM.style.display = "block"
+                        webviewFrameDOM.style.display = "none"
+                    }
+
+                    if(outputEditor && type !== 5) {
                         const text = getOutputText();
                         outputEditor.setValue(text);
                         
@@ -357,6 +372,7 @@ source "main.ch"
                 opCBtn.addEventListener("click", () => { onOutputBtnClick(2) })
                 coOutBtn.addEventListener("click", () => { onOutputBtnClick(3) })
                 opAsmBtn.addEventListener("click", () => { onOutputBtnClick(4) })
+                webviewBtn.addEventListener("click", () => { onOutputBtnClick(5) })
 
                 // Settings
                 if(settingsBtn) settingsBtn.addEventListener("click", showSettings);
@@ -411,6 +427,19 @@ source "main.ch"
                             setOutputText(savedOutputType, res.output)
                             if(res.status != 0) {
                                 displayError("error: non zero status '" + res.status + "' returned, check compiler output")
+                            }
+
+                            if (input.settings.process_commands && res.output.startsWith("%!webview:")) {
+                                let htmlContent = res.output.substring(10)
+                                let webviewFrameDOM = document.getElementById("webview-frame")
+                                webviewFrameDOM.srcdoc = htmlContent
+                                webviewBtn.style.display = "block"
+                                onOutputBtnClick(5)
+                            } else {
+                                webviewBtn.style.display = "none"
+                                if(outputType == 5) {
+                                    onOutputBtnClick(savedOutputType)
+                                }
                             }
                         } else {
                             displayError("error: unknown output received from server");
@@ -535,12 +564,14 @@ source "main.ch"
                         <button id="output-type-ir-btn" class={editor_tab_button(page)}>LLVM IR</button>
                         <button id="output-type-asm-btn" class={editor_tab_button(page)}>Assembly</button>
                         <button id="output-type-c-btn" class={editor_tab_button(page)}>C Translation</button>
+                        <button id="output-type-webview-btn" class={editor_tab_button(page)} style="display:none">WebView</button>
                         <div class={editor_toolbar(page)} style="flex-grow:1;justify-content:end;">
                             <button class={editor_tab_button(page)} id="settings-btn">Settings</button>
                             <button id="submit-btn" class={editor_tab_button_primary(page)}>Submit</button>
                         </div>
                     </div>
                     <div id="output-container" class={display_editor(page)}></div>
+                    <iframe id="webview-frame" class={display_editor(page)} style="display:none; border:none; background:white;"></iframe>
                 </div>
             </div>
 
@@ -622,6 +653,7 @@ source "main.ch"
                   <label><input type="checkbox" id="opt-benchmark"> benchmark (benchmark compilation)</label>
                   <label><input type="checkbox" id="opt-bm-files"> bm-files (benchmark files)</label>
                   <label><input type="checkbox" id="opt-bm-modules"> bm-modules (benchmark modules)</label>
+                  <label><input type="checkbox" id="opt-process-commands" checked> Process Commands</label>
                 </div>
                 <div class="modal-footer">
                   <button id="settings-cancel" class="btn btn-secondary">Cancel</button>

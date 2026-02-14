@@ -173,7 +173,7 @@ public func main() : int {
     var page = HtmlPage()
     MainPage(page)
 
-    printf("complete page:\\n");
+    printf("%!webview:");
     var completePage = page.toString();
     printf("%s\\n", completePage.data())
 
@@ -284,7 +284,7 @@ public func main() : int {
     var page = HtmlPage()
     MainPage(page)
 
-    printf("complete page:\\n");
+    printf("%!webview:");
     var completePage = page.toString();
     printf("%s\\n", completePage.data())
 

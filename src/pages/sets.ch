@@ -128,15 +128,13 @@ import std
 func getEmbeddedLangsCompSet() : CompilationSet {
     return CompilationSet {
         main : """
-// please note that this stuff is very experimental
-// expected to mostly work, if fails, file an issue
+// please note that this stuff is experimental
 
 func give_me_fruit() : *char {
     return "Bell pepper"
 }
 
 func style_banana(page : &mut HtmlPage) : *char {
-    // some properties aren't supported like 'background'
     // notice: multiple invocations of this function won't cause multiple styles
     return #css {
        color : yellow;
@@ -151,11 +149,6 @@ func color_cucumber() : *char {
 }
 
 func style_cucumber(page : &mut HtmlPage) : *char {
-    // dynamic values change the class name (begin with .r)
-    // because this can't be hashed (because runtime value, unknown)
-    // dynamic values in css can exist in place of color, length, etc... (not everywhere)
-    // warning: multiple invocations of this function cause multiple styles
-    //          this will be fixed in the future (using custom user given hash)
     return #css {
         color : {color_cucumber()};
     }
@@ -194,6 +187,121 @@ import std
 import html_cbi
 import css_cbi
 import page
+"""
+    }
+}
+
+func getComponentsCompSet() : CompilationSet {
+    return CompilationSet {
+        main : """
+// please note that this stuff is experimental
+
+#react ReactCounter(props) {
+    var [count, setCount] = useState(0)
+    return (
+        <div style={{ textAlign: 'center', padding: '2rem', background: 'rgba(255,255,255,0.03)', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.1)' }}>
+            <h3 style={{ color: '#61dafb', marginBottom: '1.5rem' }}>React</h3>
+            <button
+                onClick={() => setCount((c) => c + 1)}
+                className={props.className}
+                style={{ cursor: 'pointer', transition: 'all 0.2s' }}
+            >
+                Count: {count}
+            </button>
+        </div>
+    )
+}
+
+#preact PreactCounter(props) {
+    var [count, setCount] = useState(0)
+    return (
+        <div style={{ textAlign: 'center', padding: '2rem', background: 'rgba(255,255,255,0.03)', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.1)' }}>
+            <h3 style={"color: #673ab8; margin-bottom: 1.5rem"}>Preact</h3>
+            <button onClick={() => setCount((c) => c + 1)} className={props.className}>
+                Count: {count}
+            </button>
+        </div>
+    )
+}
+
+#solid SolidCounter(props) {
+    var [count, setCount] = createSignal(0)
+    return (
+        <div style={{ 'text-align': 'center', padding: '2rem', background: 'rgba(255,255,255,0.03)', 'border-radius': '24px', border: '1px solid rgba(255,255,255,0.1)' }}>
+            <h3 style={"color: #2c4f7c; margin-bottom: 1.5rem"}>Solid</h3>
+            <button onClick={() => setCount((c) => c + 1)} className={props.className}>
+                Count: {count()}
+            </button>
+        </div>
+    )
+}
+
+func MainPage(page : &mut HtmlPage) {
+
+    page.defaultPrepare()
+    page.defaultPreactSetup()
+    page.defaultReactSetup()
+    page.defaultSolidSetup()
+    page.appendTitle("Component Interaction - Chemical")
+
+    var btnStyle = #css {
+        padding: 0.75rem 2rem; border-radius: 12px; border: none; font-weight: 700;
+        background: linear-gradient(135deg, #00d4ff, #9130ff); color: #fff;
+        box-shadow: 0 10px 30px rgba(0, 212, 255, 0.3); letter-spacing: 0.05em;
+    }
+
+    #css {
+        .page-header { padding: 12rem 0 4rem; text-align: center; }
+        .page-header h1 { font-size: 3.5rem; margin-bottom: 1rem; }
+        .page-header p { color: #666; max-width: 600px; margin: 0 auto; }
+
+        .comp-showcase { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3rem; margin-top: 4rem; }
+        .comp-item { animation: float 6s ease-in-out infinite; }
+        .comp-item:nth-child(2) { animation-delay: 1s; }
+        .comp-item:nth-child(3) { animation-delay: 2s; }
+    }
+
+    #html {
+       <div>
+           <div class="comp-showcase">
+               <div class="comp-item">
+                   <ReactCounter className={btnStyle} />
+               </div>
+               <div class="comp-item">
+                   <PreactCounter className={btnStyle} />
+               </div>
+               <div class="comp-item">
+                   <SolidCounter className={btnStyle} />
+               </div>
+           </div>
+       </div>
+    }
+
+}
+
+public func main() : int {
+
+    var page = HtmlPage()
+    MainPage(page)
+
+    printf("complete page:\\n");
+    var completePage = page.toString();
+    printf("%s\\n", completePage.data())
+
+    return 0;
+}
+"""
+        mod : """
+module main
+source "main.ch"
+import std
+import html_cbi
+import css_cbi
+import page
+import react_cbi
+import solid_cbi
+import preact_cbi
+import md_cbi
 """
     }
 }

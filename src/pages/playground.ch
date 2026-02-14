@@ -115,6 +115,7 @@ func PlaygroundPage(page : &mut HtmlPage) {
     var strListMapCompSet = getStrListMapCompSet()
     var exprStrCompSet = getExprStrCompSet()
     var embeddedLangsCompSet = getEmbeddedLangsCompSet()
+    var componentsCompSet = getComponentsCompSet()
     #html {
         <style>{"""
             button.active {
@@ -152,6 +153,7 @@ func PlaygroundPage(page : &mut HtmlPage) {
         <script>window.strListMapTabs = create_tabs_from_comp_set(`{strListMapCompSet.main}`, `{strListMapCompSet.mod}`)</script>
         <script>window.exprStrTabs = create_tabs_from_comp_set(`{exprStrCompSet.main}`, `{exprStrCompSet.mod}`)</script>
         <script>window.embeddedLangsTabs = create_tabs_from_comp_set(`{embeddedLangsCompSet.main}`, `{embeddedLangsCompSet.mod}`)</script>
+        <script>window.componentTabs = create_tabs_from_comp_set(`{componentsCompSet.main}`, `{componentsCompSet.mod}`)</script>
         <script>{"""
 
             window.mostBasicTabs = create_tabs_from_comp_set(`@extern
@@ -326,6 +328,7 @@ source "main.ch"
                         case '2': setTabs(window.strListMapTabs); break;
                         case '3': setTabs(window.exprStrTabs); break;
                         case '4': setTabs(window.embeddedLangsTabs); break;
+                        case '5': setTabs(window.componentTabs); break;
                     }
                 });
 
@@ -517,6 +520,7 @@ source "main.ch"
                             <option value="2" class={tab_select_opt(page)}>String List</option>
                             <option value="3" class={tab_select_opt(page)}>Expressive Strings</option>
                             <option value="4" class={tab_select_opt(page)}>Embedded Languages</option>
+                            <option value="5" class={tab_select_opt(page)}>Component Frameworks</option>
                         </select>
                         <button id="main-file-btn" class={editor_tab_button(page)}>main.ch</button>
                         <button id="mod-file-btn" class={editor_tab_button(page)}>chemical.mod</button>

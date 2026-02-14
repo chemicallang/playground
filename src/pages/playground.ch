@@ -598,9 +598,9 @@ source "main.ch"
                   <label>
                     Compiler Version
                     <select id="opt-version">
+                      <option value="29" selected>v0.0.29</option>
                       <option value="28" selected>v0.0.28</option>
                       <option value="27">v0.0.27</option>
-                      <option value="26">v0.0.26</option>
                     </select>
                   </label>
                   <label>

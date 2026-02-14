@@ -91,9 +91,6 @@ func base64_encode_32bit(hash : u32, out : *mut char) {
     }
 }
 
-@extern
-public func rand() : int;
-
 func generate_random_32bit() : u32 {
     return (rand() as u32 << 16) | rand() as u32;
 }
@@ -194,9 +191,9 @@ public func main(argc : int, argv : **char) : int {
                         var files = std::vector<std::pair<std::string, std::string>>()
                         const filesPtr = values.get_ptr(std::string("files"))
                         if(filesPtr != null && filesPtr is JsonValue.Array) {
-                            var Array(values) = *filesPtr else unreachable
-                            while(!values.empty()) {
-                                var obj = values.take_last()
+                            var Array(values2) = *filesPtr else unreachable
+                            while(!values2.empty()) {
+                                var obj = values2.take_last()
                                 if(obj is JsonValue.Object) {
                                     var Object(entries) = obj else unreachable
                                     const contentPtr = entries.get_ptr(std::string("content"))
@@ -258,9 +255,9 @@ public func main(argc : int, argv : **char) : int {
                             }
                         }
 
-                        var result = compile_files_in_docker(settings, ot, files)
-                        if(result.error_msg != null) {
-                            printf("error in compile_files: %s\n", result.error_msg);
+                        var result2 = compile_files_in_docker(settings, ot, files)
+                        if(result2.error_msg != null) {
+                            printf("error in compile_files: %s\n", result2.error_msg);
                             res.write_view("""{ "type" : "error", "message" : "internal error occurred" }""")
                             return;
                         }
@@ -269,9 +266,9 @@ public func main(argc : int, argv : **char) : int {
                         var final = std::string()
                         var builder = JsonStringBuilder{ ptr : final }
                         final.append_view(std::string_view("{ \"type\" : \"output\", \"status\" : "))
-                        final.append_integer(result.status)
+                        final.append_integer(result2.status)
                         final.append_view(std::string_view(", \"output\" : "))
-                        escape_string_into(builder, result.output)
+                        escape_string_into(builder, result2.output)
                         final.append_view(std::string_view(" }"))
 
                         res.write_view(final.to_view())

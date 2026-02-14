@@ -34,11 +34,8 @@ if (def.windows) {
     @extern public func pipe(fds : *mut int) : int;
     @extern public func fork() : pid_t;
     @extern public func dup2(oldfd : int, newfd : int) : int;
-    @extern public func close(fd : int) : int;
     @extern public func execvp(file : *char, argv : *mut *char) : int;
     @extern public func _exit(status : int) : void;   // use _exit in child after exec failure
-    @extern public func read(fd : int, buf : *mut void, count : size_t) : ssize_t;
-    @extern public func waitpid(pid : pid_t, status : *mut int, options : int) : pid_t;
 
     // errno helpers (optional, used in some error paths)
     // @extern public func strerror(errnum : int) : *char;

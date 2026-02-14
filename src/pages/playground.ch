@@ -398,7 +398,7 @@ source "main.ch"
                         console.error("Editor not initialized");
                         return;
                     }
-                    let savedOutputType = outputType
+                    let savedOutputType = outputType === 5 ? 0 : outputType
                     getContentFromEditor()
                     let input = {
                         files : [],
@@ -429,7 +429,7 @@ source "main.ch"
                                 displayError("error: non zero status '" + res.status + "' returned, check compiler output")
                             }
 
-                            if (input.settings.process_commands && res.output.startsWith("%!webview:")) {
+                            if (savedOutputType === 0 && input.settings.process_commands && res.output.startsWith("%!webview:")) {
                                 let htmlContent = res.output.substring(10)
                                 let webviewFrameDOM = document.getElementById("webview-frame")
                                 webviewFrameDOM.srcdoc = htmlContent

@@ -258,7 +258,20 @@ public func main(argc : int, argv : **char) : int {
                         var result2 = compile_files_in_docker(settings, ot, files)
                         if(result2.error_msg != null) {
                             printf("error in compile_files: %s\n", result2.error_msg);
-                            res.write_view("""{ "type" : "error", "message" : "internal error occurred" }""")
+                            
+                            var err_json = std::string()
+                            var builder = JsonStringBuilder{ ptr : err_json }
+                            
+                            err_json.append_view(std::string_view("""{ "type" : "error", "message" : """))
+                            
+                            var msg_str = std::string()
+                            msg_str.append_view(std::string_view(result2.error_msg))
+                            escape_string_into(builder, msg_str)
+                            
+                            err_json.append_view(std::string_view(""" }"""))
+                            
+                            res.write_view(err_json.to_view())
+                            // cleanup string view from result2.error_msg if needed, but here it's likely a static string or managed by docker result logic
                             return;
                         }
 

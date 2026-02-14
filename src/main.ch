@@ -256,16 +256,14 @@ public func main(argc : int, argv : **char) : int {
                         }
 
                         var result2 = compile_files_in_docker(settings, ot, files)
-                        if(result2.error_msg != null) {
-                            printf("error in compile_files: %s\n", result2.error_msg);
-                            
+                        if(!result2.error_msg.empty()) {
                             var err_json = std::string()
                             var builder = JsonStringBuilder{ ptr : err_json }
                             
                             err_json.append_view(std::string_view("""{ "type" : "error", "message" : """))
                             
                             var msg_str = std::string()
-                            msg_str.append_view(std::string_view(result2.error_msg))
+                            msg_str.append_view(result2.error_msg.to_view())
                             escape_string_into(builder, msg_str)
                             
                             err_json.append_view(std::string_view(""" }"""))

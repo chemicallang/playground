@@ -3,7 +3,7 @@ public struct DockerCompilationResult {
     var status : int = 0              // exit code of compiler inside container (or -1 on internal error)
     var stdout_and_stderr : std::string
     var output : std::string // e.g. llvm_ir.ll or compiled binary (text here)
-    var error_msg : *char = null
+    var error_msg : std::string
 }
 
 // new: compile settings carried from the UI
@@ -275,22 +275,22 @@ func compile_files_in_docker(settings : &CompileSettings, outputType : OutputTyp
     if (created is std.Result.Err) {
         var Err(error) = created else unreachable
         var msg = error.message()
-        printf("couldn't create workspace directory at %s because %s\n", host_dir.data(), msg.data());
         var res = DockerCompilationResult()
         res.status = -1
-        res.error_msg = "couldn't create workspace directory"
+        var error_msg = &mut res.error_msg;
+        error_msg.append_expr(`couldn't create workspace dir at '{host_dir.data()}' because '{msg.data()}'`)
         return res
     }
 
     // set the permissions
     var perm_res = fs::set_permissions(host_dir.data(), 0o755);
     if (perm_res is std.Result.Err) {
-        printf("failed setting permissions on %s\n", host_dir.data());
         // cleanup and return error
         fs::remove_dir_all_recursive(host_dir.data());
         var res = DockerCompilationResult()
         res.status = -1
-        res.error_msg = "couldn't set permissions on host directory"
+        var error_msg = &mut res.error_msg;
+        error_msg.append_expr(`couldn't set permissions on host directory '{host_dir.data()}'`)
         return res
     }
 
@@ -300,7 +300,8 @@ func compile_files_in_docker(settings : &CompileSettings, outputType : OutputTyp
         if (!is_valid_filename(file.first.to_view())) {
             var res = DockerCompilationResult()
             res.status = -1
-            res.error_msg = "invalid file name"
+            var error_msg = &mut res.error_msg;
+            error_msg.append_expr(`invalid file name`)
             // cleanup
             fs::remove_dir_all_recursive(host_dir.data())
             return res
@@ -308,7 +309,8 @@ func compile_files_in_docker(settings : &CompileSettings, outputType : OutputTyp
         if (file.second.size() > 5000) {
             var res = DockerCompilationResult()
             res.status = -1
-            res.error_msg = "file too large"
+            var error_msg = &mut res.error_msg;
+            error_msg.append_expr(`file too large`)
             fs::remove_dir_all_recursive(host_dir.data())
             return res
         }
@@ -327,7 +329,8 @@ func compile_files_in_docker(settings : &CompileSettings, outputType : OutputTyp
             printf("failed writing text file to path %s because %s\n", path.data(), msg.data());
             var res = DockerCompilationResult()
             res.status = -1
-            res.error_msg = "couldn't write file in workspace"
+            var error_msg = &mut res.error_msg;
+            error_msg.append_expr(`couldn't write file '{path.data()}' in workspace '{msg.data()}'`)
             fs::remove_dir_all_recursive(host_dir.data())
             return res
         }
@@ -373,7 +376,8 @@ func compile_files_in_docker(settings : &CompileSettings, outputType : OutputTyp
     if (wr is std.Result.Err) {
         var res = DockerCompilationResult()
         res.status = -1
-        res.error_msg = "couldn't write entrypoint script"
+        var error_msg = &mut res.error_msg;
+        error_msg.append_expr(`couldn't write entrypoint script`)
         fs::remove_dir_all_recursive(host_dir.data())
         return res
     }
@@ -463,20 +467,22 @@ func compile_files_in_docker(settings : &CompileSettings, outputType : OutputTyp
         out_file_content.append_string(procRes.output)
     } else {
         if (read_res is std.Result.Err) {
+            var Err(err) = read_res else unreachable;
+            var msg = err.message()
             // Could not read output — return whatever logs we have
             var res = DockerCompilationResult()
             res.status = procRes.status
             res.stdout_and_stderr = std::replace(procRes.output, std::string())
             res.output = std::string() // empty
-            res.error_msg = "couldn't read output file"
-            printf("couldn't read the file at path %s\n", finalOutPath.data());
+            var error_msg = &mut res.error_msg;
+            error_msg.append_expr(`couldn't read output file '{finalOutPath.data()}' because {msg.data()}`)
             // cleanup
             var rem_res = fs::remove_dir_all_recursive(host_dir.data())
             if (rem_res is std.Result.Err) {
                 // print removal error but continue
-                var Err(err) = rem_res else unreachable
-                var msg = err.message()
-                printf("error removing directory at '%s' with message '%s'\n", host_dir.data(), msg.data());
+                var Err(err2) = rem_res else unreachable
+                var msg2 = err2.message()
+                printf("error removing directory at '%s' with message '%s'\n", host_dir.data(), msg2.data());
             }
             return res
         } else {

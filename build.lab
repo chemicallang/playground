@@ -78,14 +78,16 @@ func build(ctx : *mut AppBuildContext) {
     // add the single module
     ctx.add_module(exe_job, module)
 
-    jc.ctx = ctx;
-    jc.job = exe_job;
-    ctx.on_finished((data : *void) => {
-        const jx = data as *mut JobAndContext
-        if(jx.job.getStatus() == LabJobStatus.Success) {
-            jx.ctx.launch_executable(jx.job.getAbsPath(), true);
-        }
-    }, &jc);
+    if(ctx.has_arg("run")) {
+        jc.ctx = ctx;
+        jc.job = exe_job;
+        ctx.on_finished((data : *void) => {
+            const jx = data as *mut JobAndContext
+            if(jx.job.getStatus() == LabJobStatus.Success) {
+                jx.ctx.launch_executable(jx.job.getAbsPath(), true);
+            }
+        }, &jc);
+    }
 
     cstd_module.setLlvmIrPath(ctx.llvm_ir_path(exe_job, cstd_module).to_view())
     std_module.setLlvmIrPath(ctx.llvm_ir_path(exe_job, std_module).to_view())

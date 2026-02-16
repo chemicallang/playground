@@ -1,0 +1,90 @@
+name: Build and Release Playground
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  build:
+    name: Build (${{ matrix.os }}, ${{ matrix.backend }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        backend: [llvm, tcc]
+        include:
+          - backend: llvm
+            variant: ''
+          - backend: tcc
+            variant: 'tcc'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Cleanup existing Chemical
+        shell: bash
+        run: |
+          echo "Cleaning up potential existing Chemical installations..."
+          if [ -n "$CHEMICAL_HOME" ]; then
+            echo "Removing CHEMICAL_HOME: $CHEMICAL_HOME"
+            # Remove from PATH (simple sed approach)
+            PATH=$(echo "$PATH" | sed -e "s|:$CHEMICAL_HOME||g" -e "s|$CHEMICAL_HOME:||g" -e "s|$CHEMICAL_HOME||g")
+            echo "PATH=$PATH" >> $GITHUB_ENV
+            rm -rf "$CHEMICAL_HOME" || true
+          fi
+          
+          # Check for chemical in PATH
+          CHEMICAL_BIN=$(which chemical 2>/dev/null || true)
+          if [ -n "$CHEMICAL_BIN" ]; then
+            echo "Found chemical at $CHEMICAL_BIN, removing..."
+            CHEMICAL_DIR=$(dirname "$CHEMICAL_BIN")
+            PATH=$(echo "$PATH" | sed -e "s|:$CHEMICAL_DIR||g" -e "s|$CHEMICAL_DIR:||g" -e "s|$CHEMICAL_DIR||g")
+            echo "PATH=$PATH" >> $GITHUB_ENV
+            rm -rf "$CHEMICAL_DIR" || true
+          fi
+
+      - name: Setup Chemical
+        uses: chemicallang/install@v1.1
+        with:
+          version: 'latest'
+          variant: ${{ matrix.variant }}
+
+      - name: Build project
+        shell: bash
+        run: chemical build.lab --mode release
+
+      - name: Prepare Assets
+        shell: bash
+        run: |
+          # Determine OS token
+          if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
+            OS_TOKEN="win"
+            EXT=".exe"
+            SRC="build/playground.dir/playground.exe"
+          else
+            OS_TOKEN="linux"
+            EXT=""
+            SRC="build/playground.dir/playground"
+          fi
+          
+          # Determine Backend token
+          if [[ "${{ matrix.backend }}" == "tcc" ]]; then
+            BACKEND_TOKEN="-tcc"
+          else
+            BACKEND_TOKEN=""
+          fi
+          
+          ASSET_NAME="pg-${OS_TOKEN}-x64${BACKEND_TOKEN}${EXT}"
+          echo "Renaming $SRC to $ASSET_NAME"
+          mv "$SRC" "$ASSET_NAME"
+          echo "ASSET_PATH=$ASSET_NAME" >> $GITHUB_ENV
+
+      - name: Upload Release Asset
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: ${{ env.ASSET_PATH }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -56,7 +56,7 @@ jobs:
 
       - name: Build project
         shell: bash
-        run: chemical build.lab --mode release
+        run: chemical build.lab --mode release --no-cache
 
       - name: Prepare Assets
         shell: bash

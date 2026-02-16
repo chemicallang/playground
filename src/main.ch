@@ -158,6 +158,12 @@ public func main(argc : int, argv : **char) : int {
         }
     })
 
+    srv.router.add("GET", "/install.sh", (req, res) => {
+        res.status = 302u;
+        res.set_header_view(std::string_view("Location"), std::string_view("https://raw.githubusercontent.com/chemicallang/chemical/main/scripts/download.sh"));
+        res.write_view(std::string_view("Redirecting to install script...\n"));
+    })
+
     srv.router.add("POST", "/submit", (req, res) => {
         res.set_header_view(std::string_view("Content-Type"), std::string_view("application/json; charset=utf-8"));
         var body_opt = req.body.read_to_string()

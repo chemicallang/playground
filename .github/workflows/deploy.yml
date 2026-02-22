@@ -1,0 +1,40 @@
+name: Deploy Playground
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to deploy (e.g., v1.0). Leave empty for latest.'
+        required: false
+        default: ''
+      no_tcc:
+        description: 'Use the LLVM variant (non-tcc)'
+        type: boolean
+        default: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install sshpass
+        run: sudo apt-get update && sudo apt-get install -y sshpass
+
+      - name: Run deployment script
+        env:
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_PASSWORD: ${{ secrets.DEPLOY_PASSWORD }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+        run: |
+          chmod +x ./deploy.sh
+          ARGS="--use-release"
+          if [ "${{ github.event.inputs.version }}" != "" ]; then
+            ARGS="$ARGS --version ${{ github.event.inputs.version }}"
+          fi
+          if [ "${{ github.event.inputs.no_tcc }}" == "true" ]; then
+            ARGS="$ARGS --no-tcc"
+          fi
+          ./deploy.sh $ARGS

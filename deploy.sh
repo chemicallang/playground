@@ -75,7 +75,7 @@ if [ "$USE_RELEASE" = true ]; then
         ASSET_NAME="pg-linux-x64"
     fi
 
-    DOWNLOAD_URL=$(echo "$RELEASE_JSON" | grep -oP '"browser_download_url":\s*"\K[^"]+' | grep "$ASSET_NAME$")
+    DOWNLOAD_URL=$(echo "$RELEASE_JSON" | grep -o "\"browser_download_url\":\s*\"[^\"]*$ASSET_NAME\"" | head -n 1 | cut -d '"' -f 4)
     
     if [ -z "$DOWNLOAD_URL" ]; then
         error "Asset $ASSET_NAME not found in release $VERSION."

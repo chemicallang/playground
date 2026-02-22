@@ -1,5 +1,3 @@
-import "@html/page.ch"
-
 func GlobalStyles(page : &mut HtmlPage) {
     #html {
         <style>{"""

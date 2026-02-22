@@ -1,5 +1,3 @@
-import "@html/page.ch"
-
 func error_box_container(page : &mut HtmlPage) : *char {
     return #css {
         width : 100%;

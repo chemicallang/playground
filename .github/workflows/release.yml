@@ -56,7 +56,7 @@ jobs:
 
       - name: Build project
         shell: bash
-        run: chemical build.lab --mode release --no-cache
+        run: chemical chemical.mod -o playground.exe --mode release --no-cache
 
       - name: Prepare Assets
         shell: bash
@@ -65,11 +65,11 @@ jobs:
           if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
             OS_TOKEN="win"
             EXT=".exe"
-            SRC="build/playground.dir/playground.exe"
+            SRC="playground.exe"
           else
             OS_TOKEN="linux"
             EXT=""
-            SRC="build/playground.dir/playground"
+            SRC="playground"
           fi
           
           # Determine Backend token

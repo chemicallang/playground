@@ -73,7 +73,7 @@ func build(ctx : *mut AppBuildContext) {
 
     const depsArr = [ cstd_module, std_module, html_module, css_module, page_module, net_module, json_module, fs_module ]
     var dependencies = std::span<*mut Module>(depsArr)
-    const module = ctx.chemical_dir_module(std::string_view(""), std::string_view("main"), lab::rel_path_to("src").to_view(), dependencies);
+    const module = ctx.directory_app_module(std::string_view(""), std::string_view("main"), lab::rel_path_to("src").to_view(), dependencies);
 
     // add the single module
     ctx.add_module(exe_job, module)

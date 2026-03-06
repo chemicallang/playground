@@ -474,11 +474,11 @@ source "main.ch"
                                 { background: bg.replace('#', '') }
                             ],
                             colors: {
-                                'editor.background': bg,
+                                'editor.background': isDark ? '#020617' : '#F8FAFC',
                                 'editor.foreground': text,
-                                'editor.lineHighlightBackground': surface,
-                                'editor.selectionBackground': surface,
-                                'editor.inactiveSelectionBackground': surface,
+                                'editor.lineHighlightBackground': isDark ? '#1E293B' : '#F1F5F9',
+                                'editor.selectionBackground': isDark ? '#334155' : '#E2E8F0',
+                                'editor.inactiveSelectionBackground': isDark ? '#1E293B' : '#F1F5F9',
                             }
                         });
                         monaco.editor.setTheme('chemical-theme');

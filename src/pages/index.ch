@@ -15,21 +15,28 @@ func MainPage(page : &mut HtmlPage) {
                     width: 100%;
                     height: 100%;
                     z-index: -1;
-                    opacity: 0.5;
+                    opacity: 0.6;
                 }
                 body:not(.light-theme) #bg-canvas {
-                    background: radial-gradient(circle at 50% 50%, #0f172a 0%, #020617 100%);
+                    background: radial-gradient(circle at 50% 50%, #0F172A 0%, #020617 100%);
                 }
                 body.light-theme #bg-canvas {
-                    background: radial-gradient(circle at 50% 50%, #f1f5f9 0%, #ffffff 100%);
+                    background: radial-gradient(circle at 50% 50%, #F1F5F9 0%, #FFFFFF 100%);
+                }
+
+                /* Glassmorphic Cards & Boxes */
+                .install-box, .nav-card, .os-card, .feature-card {
+                    background: var(--glass-bg);
+                    border: 1px solid var(--glass-border);
+                    backdrop-filter: var(--glass-blur);
+                    -webkit-backdrop-filter: var(--glass-blur);
+                    border-radius: var(--border-radius);
+                    transition: all var(--transition);
                 }
 
                 .install-box {
-                    max-width: 600px;
-                    margin: 3rem auto 0 auto;
-                    background: var(--surface);
-                    border: 1px solid var(--border-color);
-                    border-radius: var(--border-radius);
+                    max-width: 650px;
+                    margin: 3.5rem auto 0 auto;
                     padding: 1.5rem;
                     text-align: left;
                     box-shadow: var(--shadow-strong);
@@ -43,10 +50,10 @@ func MainPage(page : &mut HtmlPage) {
                 }
 
                 .tab-chip {
-                    padding: 0.5rem 1rem;
-                    background: var(--bg);
-                    border: 1px solid var(--border-color);
-                    border-radius: 20px;
+                    padding: 0.6rem 1.25rem;
+                    background: rgba(255, 255, 255, 0.05);
+                    border: 1px solid var(--glass-border);
+                    border-radius: 30px;
                     color: var(--text-muted);
                     font-size: 0.85rem;
                     font-weight: 600;
@@ -55,23 +62,25 @@ func MainPage(page : &mut HtmlPage) {
                 }
 
                 .tab-chip:hover {
-                    background: var(--muted-surface);
+                    background: rgba(255, 255, 255, 0.1);
                     color: var(--text);
+                    border-color: var(--accent-primary);
                 }
 
                 .tab-chip.active {
                     background: var(--accent-primary);
                     border-color: var(--accent-primary);
                     color: var(--accent-contrast);
+                    box-shadow: 0 0 15px var(--glow-color);
                 }
 
                 .install-command {
-                    background: var(--bg);
-                    border: 1px solid var(--border-color);
-                    border-radius: 10px;
-                    padding: 0.85rem 1rem;
-                    font-family: monospace;
-                    font-size: 0.9rem;
+                    background: rgba(0, 0, 0, 0.3);
+                    border: 1px solid var(--glass-border);
+                    border-radius: 12px;
+                    padding: 1rem 1.25rem;
+                    font-family: var(--font-mono);
+                    font-size: 0.95rem;
                     color: var(--accent-primary);
                     display: flex;
                     align-items: center;
@@ -82,6 +91,7 @@ func MainPage(page : &mut HtmlPage) {
 
                 .install-command:hover {
                     border-color: var(--accent-primary);
+                    background: rgba(0, 0, 0, 0.4);
                 }
 
                 .install-command code {
@@ -90,13 +100,13 @@ func MainPage(page : &mut HtmlPage) {
                 }
 
                 .copy-btn {
-                    background: var(--surface);
+                    background: rgba(56, 189, 248, 0.1);
                     border: 1px solid var(--accent-primary);
                     color: var(--accent-primary);
-                    padding: 0.4rem 0.85rem;
-                    border-radius: 6px;
-                    font-size: 0.8rem;
-                    font-weight: 600;
+                    padding: 0.5rem 1rem;
+                    border-radius: 8px;
+                    font-size: 0.85rem;
+                    font-weight: 700;
                     cursor: pointer;
                     transition: all var(--transition);
                     white-space: nowrap;
@@ -105,113 +115,216 @@ func MainPage(page : &mut HtmlPage) {
                 .copy-btn:hover {
                     background: var(--accent-primary);
                     color: var(--accent-contrast);
+                    box-shadow: 0 0 12px var(--glow-color);
                 }
 
                 .install-label {
-                    font-size: 0.75rem;
+                    font-size: 0.8rem;
                     color: var(--text-muted);
-                    margin-top: 0.75rem;
+                    margin-top: 1rem;
                     font-weight: 500;
                     text-align: center;
+                    opacity: 0.8;
                 }
 
-                /* Explore Section Styles */
+                /* Hero Section Improvements */
+                .hero {
+                    position: relative;
+                    padding: 8rem 0 6rem 0;
+                    text-align: center;
+                    overflow: visible;
+                }
+
+                .hero::before {
+                    content: '';
+                    position: absolute;
+                    top: -50px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    width: 500px;
+                    height: 500px;
+                    background: var(--accent-primary);
+                    filter: blur(150px);
+                    opacity: 0.12;
+                    border-radius: 50%;
+                    z-index: -1;
+                    pointer-events: none;
+                }
+
+                .hero h1 {
+                    font-size: clamp(2.5rem, 8vw, 5rem);
+                    font-weight: 800;
+                    line-height: 1.1;
+                    margin-bottom: 1.5rem;
+                    letter-spacing: -0.04em;
+                    background: linear-gradient(to bottom, #FFFFFF 0%, #94A3B8 100%);
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                }
+                
+                body.light-theme .hero h1 {
+                    background: linear-gradient(to bottom, #0F172A 0%, #475569 100%);
+                    -webkit-background-clip: text;
+                }
+
+                .hero h1 span {
+                    background: var(--gradient-primary);
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                }
+
+                .hero p {
+                    font-size: clamp(1.1rem, 3vw, 1.4rem);
+                    color: var(--text-muted);
+                    max-width: 750px;
+                    margin: 0 auto 3rem auto;
+                    font-weight: 400;
+                    line-height: 1.6;
+                }
+
+                .hero .buttons {
+                    display: flex;
+                    gap: 1.25rem;
+                    justify-content: center;
+                    flex-wrap: wrap;
+                }
+
+                /* Navigation Cards */
                 .nav-grid {
                     display: grid;
-                    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-                    gap: 1.5rem;
-                    margin-top: 2.5rem;
+                    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+                    gap: 2rem;
+                    margin-top: 3rem;
                 }
 
                 .nav-card {
-                    background: var(--surface);
-                    border: 1px solid var(--border-color);
-                    padding: 2rem;
-                    border-radius: var(--border-radius);
-                    text-decoration: none;
-                    color: var(--text);
-                    transition: all var(--transition);
+                    padding: 2.5rem;
                     display: flex;
                     flex-direction: column;
-                    gap: 1rem;
+                    gap: 1.25rem;
+                    text-decoration: none;
                 }
 
                 .nav-card:hover {
-                    transform: translateY(-8px);
+                    transform: translateY(-10px);
                     border-color: var(--accent-primary);
-                    background: var(--muted-surface);
+                    background: rgba(255, 255, 255, 0.06);
                     box-shadow: var(--shadow-strong);
                 }
 
                 .nav-card-icon {
-                    font-size: 2.5rem;
+                    font-size: 3rem;
                     line-height: 1;
+                    filter: drop-shadow(0 0 10px var(--glow-color));
                 }
 
                 .nav-card h3 {
-                    font-size: 1.5rem;
-                    font-weight: 700;
+                    font-size: 1.75rem;
+                    font-weight: 800;
                     margin: 0;
                     display: flex;
                     align-items: center;
-                    gap: 0.75rem;
+                    gap: 1rem;
+                    letter-spacing: -0.02em;
                 }
 
                 .nav-card p {
                     color: var(--text-muted);
-                    font-size: 1rem;
-                    line-height: 1.6;
+                    font-size: 1.05rem;
+                    line-height: 1.7;
                     margin: 0;
                 }
 
                 .nav-card-badge {
-                    display: inline-block;
-                    padding: 0.25rem 0.75rem;
-                    background: var(--glow-color);
+                    display: inline-flex;
+                    padding: 0.35rem 0.85rem;
+                    background: rgba(56, 189, 248, 0.15);
                     border: 1px solid var(--accent-primary);
-                    border-radius: 6px;
+                    border-radius: 8px;
                     font-size: 0.75rem;
-                    font-weight: 600;
+                    font-weight: 700;
                     color: var(--accent-primary);
                     text-transform: uppercase;
                     letter-spacing: 0.05em;
                     align-self: flex-start;
                 }
 
-                /* Beautified Download Section */
+                /* Download Cards */
                 .os-card {
-                    background: var(--surface);
-                    border: 1px solid var(--border-color);
-                    border-radius: var(--border-radius);
-                    transition: all var(--transition) !important;
+                    padding: 2.5rem;
+                    text-align: center;
                 }
-                .os-card:hover {
-                    transform: translateY(-8px) scale(1.02);
-                    border-color: var(--accent-primary);
-                    box-shadow: var(--shadow-strong);
+
+                .os-card h3 {
+                    font-size: 1.5rem;
+                    font-weight: 800;
+                    margin-bottom: 2rem;
+                    color: var(--text);
                 }
+
+                .download-links {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 1rem;
+                }
+
                 .download-link {
-                    background: var(--bg);
-                    border: 1px solid var(--border-color);
-                    border-radius: var(--border-radius);
-                    transition: all var(--transition) !important;
+                    background: rgba(255, 255, 255, 0.03);
+                    border: 1px solid var(--glass-border);
+                    border-radius: 12px;
+                    padding: 1.25rem;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    gap: 0.25rem;
+                    color: var(--text);
+                    font-weight: 600;
+                    transition: all var(--transition);
                 }
+
                 .download-link:hover {
-                    background: var(--muted-surface);
+                    background: rgba(255, 255, 255, 0.08);
                     border-color: var(--accent-primary);
                     color: var(--accent-primary);
+                    transform: scale(1.02);
                 }
-            """}</style>
+
+                .download-link .arch {
+                    font-size: 1rem;
+                }
+
+                .download-link .desc {
+                    font-size: 0.8rem;
+                    color: var(--text-muted);
+                    font-weight: 400;
+                }
+
+                .note {
+                    text-align: center;
+                    margin-top: 4rem;
+                    color: var(--text-muted);
+                    font-size: 1rem;
+                }
+                
+                 .note strong { color: var(--accent-primary); }
+ 
+                 .download-grid {
+                     display: grid;
+                     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+                     gap: 2rem;
+                     margin-top: 2rem;
+                 }
+             """}</style>
             <canvas id="bg-canvas"></canvas>
             {Header(page)}
             <div class="hero">
-                <div class="hero-content">
-                    <h1 class="fade-in">The Chemical Programming Language</h1>
-                    <p class="fade-in delay-100">A native, memory-safe systems language with HTML/CSS macros and no garbage collection.</p>
+                <div class="hero-content container">
+                    <h1 class="fade-in">The <span>Chemical</span>&nbsp;Programming Language</h1>
+                    <p class="fade-in delay-100">A native, memory-safe systems language with HTML/CSS macros and no garbage collection. Built for the modern web and native performance.</p>
                     <div class="buttons fade-in delay-200">
                         <a href="/playground" class="btn btn-primary">Try Playground</a>
                         <a href="https://github.com/chemicallang/chemical" target="_blank" class="btn btn-secondary github-link">
-                            <svg height="20" width="20" viewBox="0 0 16 16" version="1.1" aria-hidden="true"><path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg>
+                            <svg height="20" width="20" viewBox="0 0 16 16" version="1.1" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg>
                             GitHub
                         </a>
                     </div>
@@ -234,58 +347,57 @@ func MainPage(page : &mut HtmlPage) {
 
             <div class="container">
                 <section id="features">
-                    <h2 class="section-title">What is Chemical?</h2>
+                    <h2 class="section-title">Why <span>Chemical</span>?</h2>
                     <div class="features-grid">
                         <div class="feature-card fade-in delay-100">
                             <h3>Native & Fast</h3>
-                            <p>Compiles to C and runs via TinyCC or LLVM. No garbage collection means predictable performance.</p>
+                            <p>Compiles to C and runs via TinyCC or LLVM. Predictable performance with zero garbage collection overhead.</p>
                         </div>
-                        <div class="feature-card fade-in delay-300">
+                        <div class="feature-card fade-in delay-200">
                             <h3>Macro Power</h3>
-                            <p>First-class support for HTML and CSS macros, parsed by compiler plugins for safe web development.</p>
+                            <p>Built-in support for HTML and CSS macros, parsed by compiler plugins for safe and expressive web development.</p>
                         </div>
                         <div class="feature-card fade-in delay-300">
-                            <h3>Flexible Build</h3>
-                            <p>Built-in build system that handles dependencies and compilation efficiently.</p>
+                            <h3>Modern Design</h3>
+                            <p>Engineered for the 21st century, combining systems-level control with developer experience found in high-level languages.</p>
                         </div>
                     </div>
                 </section>
 
                 <section id="explore">
-                    <h2 class="section-title">Explore Chemical</h2>
+                    <h2 class="section-title">Explore the <span>Ecosystem</span></h2>
                     <div class="nav-grid">
-                        <a href="https://docs.chemicallang.com" class="nav-card">
+                        <a href="https://docs.chemicallang.com" class="nav-card scroll-reveal">
                             <div class="nav-card-icon">📖</div>
                             <h3>Documentation</h3>
-                            <p>Complete guides, tutorials, and reference materials to get you started with Chemical.</p>
+                            <p>Detailed guides and tutorials to master Chemical syntax, memory safety, and web macros.</p>
                         </a>
 
-                        <a href="https://chemicallang.com/api" class="nav-card">
+                        <a href="https://chemicallang.com/api" class="nav-card scroll-reveal">
                             <div class="nav-card-icon">📚</div>
                             <h3>API Reference</h3>
-                            <p>Comprehensive API documentation for Chemical's standard library and core functionality.</p>
+                            <p>Reference documentation for the Chemical standard library and core language modules.</p>
                         </a>
 
-                        <a href="/playground" class="nav-card">
+                        <a href="/playground" class="nav-card scroll-reveal">
                             <div class="nav-card-icon">🎮</div>
                             <h3>Playground</h3>
-                            <p>Write, compile, and run Chemical code directly in your browser. Experiment with the language.</p>
+                            <p>Experiment with Chemical in our interactive editor. Write, compile, and run code instantly.</p>
                             <span class="nav-card-badge">Interactive</span>
                         </a>
 
-                        <a href="https://chemicallang.github.io/components" class="nav-card">
+                        <a href="https://chemicallang.github.io/components" class="nav-card scroll-reveal">
                             <div class="nav-card-icon">🧩</div>
-                            <h3>Components Showcase</h3>
-                            <p>Explore UI components built with Chemical's HTML/CSS macros. Reactive web interfaces.</p>
+                            <h3>Components</h3>
+                            <p>See UI components built with HTML/CSS macros. Reactive interfaces in a systems language.</p>
                             <span class="nav-card-badge">Demo</span>
                         </a>
                     </div>
                 </section>
 
                 <section id="download">
-                    <h2 class="section-title">Download Compiler (v0.0.30)</h2>
+                    <h2 class="section-title">Get <span>Chemical</span></h2>
                     <div class="download-grid">
-                        <!-- Windows -->
                         <div class="os-card">
                             <h3>Windows</h3>
                             <div class="download-links">
@@ -305,8 +417,6 @@ func MainPage(page : &mut HtmlPage) {
                                 </a>
                             </div>
                         </div>
-
-                        <!-- Linux -->
                         <div class="os-card">
                             <h3>Linux</h3>
                             <div class="download-links">
@@ -324,8 +434,6 @@ func MainPage(page : &mut HtmlPage) {
                                 </a>
                             </div>
                         </div>
-
-                        <!-- macOS -->
                         <div class="os-card">
                             <h3>macOS</h3>
                             <div class="download-links">
@@ -344,7 +452,7 @@ func MainPage(page : &mut HtmlPage) {
                             </div>
                         </div>
                     </div>
-                    <p class="note">Chemical is currently in <strong>Pre-Alpha</strong>. Alpine Linux versions are also available on <a href="https://github.com/chemicallang/chemical/releases/tag/v0.0.30" target="_blank" style="text-decoration:underline;">GitHub Releases</a>.</p>
+                    <p class="note">Chemical is in <strong>Pre-Alpha</strong>. More releases available on <a href="https://github.com/chemicallang/chemical/releases/tag/v0.0.30" target="_blank" style="text-decoration:underline;">GitHub Releases</a>.</p>
                 </section>
             </div>
 
@@ -396,7 +504,7 @@ func MainPage(page : &mut HtmlPage) {
                 const canvas = document.getElementById('bg-canvas');
                 const ctx = canvas.getContext('2d');
                 let particles = [];
-                const particleCount = 60;
+                const particleCount = 70;
                 const maxDistance = 150;
 
                 function resize() {
@@ -411,9 +519,9 @@ func MainPage(page : &mut HtmlPage) {
                     init() {
                         this.x = Math.random() * canvas.width;
                         this.y = Math.random() * canvas.height;
-                        this.vx = (Math.random() - 0.5) * 0.5;
-                        this.vy = (Math.random() - 0.5) * 0.5;
-                        this.radius = Math.random() * 2 + 1;
+                        this.vx = (Math.random() - 0.5) * 0.4;
+                        this.vy = (Math.random() - 0.5) * 0.4;
+                        this.radius = Math.random() * 2 + 0.5;
                     }
                     update() {
                         this.x += this.vx;
@@ -425,7 +533,7 @@ func MainPage(page : &mut HtmlPage) {
                         ctx.beginPath();
                         ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
                         const isLight = document.body.classList.contains('light-theme');
-                        ctx.fillStyle = isLight ? 'rgba(37, 99, 235, 0.2)' : 'rgba(56, 189, 248, 0.3)';
+                        ctx.fillStyle = isLight ? 'rgba(37, 99, 235, 0.15)' : 'rgba(56, 189, 248, 0.25)';
                         ctx.fill();
                     }
                 }
@@ -446,7 +554,7 @@ func MainPage(page : &mut HtmlPage) {
                                 ctx.beginPath();
                                 ctx.moveTo(particles[i].x, particles[i].y);
                                 ctx.lineTo(particles[j].x, particles[j].y);
-                                const opacity = 0.15 * (1 - dist / maxDistance);
+                                const opacity = 0.12 * (1 - dist / maxDistance);
                                 ctx.strokeStyle = isLight ? `rgba(37, 99, 235, ${opacity})` : `rgba(56, 189, 248, ${opacity})`;
                                 ctx.lineWidth = 1;
                                 ctx.stroke();

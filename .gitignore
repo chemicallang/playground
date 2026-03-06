@@ -2,3 +2,4 @@ build
 deploy.env
 playground.downloaded
 playground.exe
+playground.def

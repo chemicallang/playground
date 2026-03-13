@@ -85,7 +85,7 @@ func print_map(map : &mut std::unordered_map<std::string_view, std::string_view>
 }
 """,
         mod : """
-module main
+application main
 source "main.ch"
 import std
 """
@@ -118,7 +118,7 @@ public func main() : int {
 }
 """
         mod : """
-module main
+application main
 source "main.ch"
 import std
 """
@@ -181,7 +181,7 @@ public func main() : int {
 }
 """
         mod : """
-module main
+application main
 source "main.ch"
 import std
 import html_cbi
@@ -292,7 +292,7 @@ public func main() : int {
 }
 """
         mod : """
-module main
+application main
 source "main.ch"
 import std
 import html_cbi

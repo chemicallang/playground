@@ -373,7 +373,7 @@ func MainPage(page : &mut HtmlPage) {
                             <p>Detailed guides and tutorials to master Chemical syntax, memory safety, and web macros.</p>
                         </a>
 
-                        <a href="https://chemicallang.com/api" class="nav-card scroll-reveal">
+                        <a href="https://api.chemicallang.com" class="nav-card scroll-reveal">
                             <div class="nav-card-icon">📚</div>
                             <h3>API Reference</h3>
                             <p>Reference documentation for the Chemical standard library and core language modules.</p>

@@ -401,18 +401,18 @@ func MainPage(page : &mut HtmlPage) {
                         <div class="os-card">
                             <h3>Windows</h3>
                             <div class="download-links">
-                                <a href="https://github.com/chemicallang/chemical/releases/download/v0.0.30/windows-x64.zip" class="download-link">
+                                <a href="https://github.com/chemicallang/chemical/releases/download/v0.0.32/windows-x64.zip" class="download-link">
                                     <span class="arch">x64 (LLVM)</span>
                                     <span class="desc">Default Backend</span>
                                 </a>
-                                <a href="https://github.com/chemicallang/chemical/releases/download/v0.0.30/windows-x64-tcc.zip" class="download-link">
+                                <a href="https://github.com/chemicallang/chemical/releases/download/v0.0.32/windows-x64-tcc.zip" class="download-link">
                                     <span class="arch">x64 (TinyCC)</span>
                                     <span class="desc">Fast Compilation</span>
                                 </a>
-                                <a href="https://github.com/chemicallang/chemical/releases/download/v0.0.30/windows-arm64.zip" class="download-link">
+                                <a href="https://github.com/chemicallang/chemical/releases/download/v0.0.32/windows-arm64.zip" class="download-link">
                                     <span class="arch">ARM64 (LLVM)</span>
                                 </a>
-                                <a href="https://github.com/chemicallang/chemical/releases/download/v0.0.30/windows-arm64-tcc.zip" class="download-link">
+                                <a href="https://github.com/chemicallang/chemical/releases/download/v0.0.32/windows-arm64-tcc.zip" class="download-link">
                                     <span class="arch">ARM64 (TinyCC)</span>
                                 </a>
                             </div>
@@ -420,16 +420,16 @@ func MainPage(page : &mut HtmlPage) {
                         <div class="os-card">
                             <h3>Linux</h3>
                             <div class="download-links">
-                                <a href="https://github.com/chemicallang/chemical/releases/download/v0.0.30/linux-x64.zip" class="download-link">
+                                <a href="https://github.com/chemicallang/chemical/releases/download/v0.0.32/linux-x64.zip" class="download-link">
                                     <span class="arch">x64 (LLVM)</span>
                                 </a>
-                                <a href="https://github.com/chemicallang/chemical/releases/download/v0.0.30/linux-x64-tcc.zip" class="download-link">
+                                <a href="https://github.com/chemicallang/chemical/releases/download/v0.0.32/linux-x64-tcc.zip" class="download-link">
                                     <span class="arch">x64 (TinyCC)</span>
                                 </a>
-                                <a href="https://github.com/chemicallang/chemical/releases/download/v0.0.30/linux-arm64.zip" class="download-link">
+                                <a href="https://github.com/chemicallang/chemical/releases/download/v0.0.32/linux-arm64.zip" class="download-link">
                                     <span class="arch">ARM64 (LLVM)</span>
                                 </a>
-                                <a href="https://github.com/chemicallang/chemical/releases/download/v0.0.30/linux-arm64-tcc.zip" class="download-link">
+                                <a href="https://github.com/chemicallang/chemical/releases/download/v0.0.32/linux-arm64-tcc.zip" class="download-link">
                                     <span class="arch">ARM64 (TinyCC)</span>
                                 </a>
                             </div>
@@ -437,22 +437,22 @@ func MainPage(page : &mut HtmlPage) {
                         <div class="os-card">
                             <h3>macOS</h3>
                             <div class="download-links">
-                                <a href="https://github.com/chemicallang/chemical/releases/download/v0.0.30/macos-x64.zip" class="download-link">
+                                <a href="https://github.com/chemicallang/chemical/releases/download/v0.0.32/macos-x64.zip" class="download-link">
                                     <span class="arch">Intel (LLVM)</span>
                                 </a>
-                                <a href="https://github.com/chemicallang/chemical/releases/download/v0.0.30/macos-x64-tcc.zip" class="download-link">
+                                <a href="https://github.com/chemicallang/chemical/releases/download/v0.0.32/macos-x64-tcc.zip" class="download-link">
                                     <span class="arch">Intel (TinyCC)</span>
                                 </a>
-                                <a href="https://github.com/chemicallang/chemical/releases/download/v0.0.30/macos-arm64.zip" class="download-link">
+                                <a href="https://github.com/chemicallang/chemical/releases/download/v0.0.32/macos-arm64.zip" class="download-link">
                                     <span class="arch">Apple Silicon (LLVM)</span>
                                 </a>
-                                <a href="https://github.com/chemicallang/chemical/releases/download/v0.0.30/macos-arm64-tcc.zip" class="download-link">
+                                <a href="https://github.com/chemicallang/chemical/releases/download/v0.0.32/macos-arm64-tcc.zip" class="download-link">
                                     <span class="arch">Apple Silicon (TinyCC)</span>
                                 </a>
                             </div>
                         </div>
                     </div>
-                    <p class="note">Chemical is in <strong>Pre-Alpha</strong>. More releases available on <a href="https://github.com/chemicallang/chemical/releases/tag/v0.0.30" target="_blank" style="text-decoration:underline;">GitHub Releases</a>.</p>
+                    <p class="note">Chemical is in <strong>Pre-Alpha</strong>. More releases available on <a href="https://github.com/chemicallang/chemical/releases" target="_blank" style="text-decoration:underline;">GitHub Releases</a>.</p>
                 </section>
             </div>
 

@@ -113,7 +113,7 @@ public func main() : int {
     println(\`The value of pi is {pi} and {msg}\`)
 
 
-    print(\`{"\\n\\n"}Long Live Chemical{"\\n\\n"}\`)
+    print(\`${"\\n\\n"}Long Live Chemical${"\\n\\n"}\`)
     return 0;
 }
 """

@@ -428,9 +428,6 @@ func compile_files_in_docker(settings : &CompileSettings, outputType : OutputTyp
         32, default => {
             image_name.append_view(std::string_view("32"))
         }
-        31 => {
-            image_name.append_view(std::string_view("32"))
-        }
         30 => {
             image_name.append_view(std::string_view("30"))
         }

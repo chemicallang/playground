@@ -254,14 +254,14 @@ public func main(argc : int, argv : **char) : int {
                             if (s_version != null && s_version is JsonValue.String) {
                                 var String(v_str) = *s_version else unreachable;
                                 switch(fnv1_hash_view(v_str.to_view())) {
-                                    comptime_fnv1_hash("30"), default => {
+                                    comptime_fnv1_hash("32"), default => {
+                                        settings.version = 32;
+                                    }
+                                    comptime_fnv1_hash("30") => {
                                         settings.version = 30;
                                     }
                                     comptime_fnv1_hash("29") => {
                                         settings.version = 29;
-                                    }
-                                    comptime_fnv1_hash("28") => {
-                                        settings.version = 28;
                                     }
                                 }
                             }

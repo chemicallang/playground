@@ -425,14 +425,17 @@ func compile_files_in_docker(settings : &CompileSettings, outputType : OutputTyp
     var image_name = std::string()
     image_name.append_view(std::string_view("chemicallang/chemical:v0.0."))
     switch(settings.version) {
-        30, default => {
+        32, default => {
+            image_name.append_view(std::string_view("32"))
+        }
+        31 => {
+            image_name.append_view(std::string_view("32"))
+        }
+        30 => {
             image_name.append_view(std::string_view("30"))
         }
         29 => {
             image_name.append_view(std::string_view("29"))
-        }
-        28 => {
-            image_name.append_view(std::string_view("28"))
         }
     }
     image_name.append_view(std::string_view("-ubuntu"))

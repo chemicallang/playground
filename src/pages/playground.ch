@@ -159,7 +159,7 @@ public func printf(format : *char, _ : any...)
 public func main() : int {
     printf("Hello World");
     return 0;
-}`, `module main
+}`, `application main
 source "main.ch"
 `)
 
@@ -627,9 +627,10 @@ source "main.ch"
                   <label>
                     Compiler Version
                     <select id="opt-version">
-                      <option value="30" selected>v0.0.30</option>
+                      <option value="32" selected>v0.0.32</option>
+                      <option value="31">v0.0.31</option>
+                      <option value="30">v0.0.30</option>
                       <option value="29">v0.0.29</option>
-                      <option value="28">v0.0.28</option>
                     </select>
                   </label>
                   <label>

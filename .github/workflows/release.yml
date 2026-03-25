@@ -69,7 +69,7 @@ jobs:
           else
             OS_TOKEN="linux"
             EXT=""
-            SRC="playground"
+            SRC="playground.exe"
           fi
           
           # Determine Backend token

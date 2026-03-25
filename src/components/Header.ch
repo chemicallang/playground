@@ -30,7 +30,7 @@ func Header(page : &mut HtmlPage) {
                       <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
                   </svg>
               </button>
-              <a href="https://chemicallang.github.io/learn-chemical" target="_blank"><button class="btn btn-primary">Get Started</button></a>
+              <a href="https://docs.chemicallang.com" target="_blank"><button class="btn btn-primary">Get Started</button></a>
               <a href="/playground"><button class="btn btn-primary">Playground</button></a>
             </nav>
           </div>

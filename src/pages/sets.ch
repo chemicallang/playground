@@ -104,13 +104,13 @@ public func main() : int {
     var str = std::string()
     var day = "Friday"
     var count = 7
-    str.append_expr(\`Today is ${day} and there are ${count} days in a week\`)
+    str.append_expr(\`Today is \${day} and there are \${count} days in a week\`)
     printf("%s\\n", str.data());
 
     // send to command line
     var pi = 3.14f
     var msg = "I remember it"
-    println(\`The value of pi is ${pi} and ${msg}\`)
+    println(\`The value of pi is \${pi} and \${msg}\`)
 
 
     print(\`${"\\n\\n"}Long Live Chemical${"\\n\\n"}\`)

@@ -15,7 +15,7 @@ func Header(page : &mut HtmlPage) {
             }
           """}</script>
           <div class="container nav">
-            <a href="/" class="logo"><img src="/Logo.png" alt="Logo" height="48px"/>Chemical</a>
+            <a href="/" class="logo"><img src="/Logo.png" alt="Logo" height="48px"/><span>Chemical</span></a>
             <nav class="nav-links">
               <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Theme">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -30,7 +30,7 @@ func Header(page : &mut HtmlPage) {
                       <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
                   </svg>
               </button>
-              <a href="https://chemicallang.github.io/learn-chemical" target="_blank"><button class="btn btn-primary">Get Started</button></a>
+              <a href="https://docs.chemicallang.com" target="_blank"><button class="btn btn-primary">Get Started</button></a>
               <a href="/playground"><button class="btn btn-primary">Playground</button></a>
             </nav>
           </div>

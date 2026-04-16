@@ -159,7 +159,7 @@ public func printf(format : *char, _ : any...)
 public func main() : int {
     printf("Hello World");
     return 0;
-}`, `module main
+}`, `application main
 source "main.ch"
 `)
 
@@ -474,11 +474,11 @@ source "main.ch"
                                 { background: bg.replace('#', '') }
                             ],
                             colors: {
-                                'editor.background': bg,
+                                'editor.background': isDark ? '#020617' : '#F8FAFC',
                                 'editor.foreground': text,
-                                'editor.lineHighlightBackground': surface,
-                                'editor.selectionBackground': surface,
-                                'editor.inactiveSelectionBackground': surface,
+                                'editor.lineHighlightBackground': isDark ? '#1E293B' : '#F1F5F9',
+                                'editor.selectionBackground': isDark ? '#334155' : '#E2E8F0',
+                                'editor.inactiveSelectionBackground': isDark ? '#1E293B' : '#F1F5F9',
                             }
                         });
                         monaco.editor.setTheme('chemical-theme');
@@ -627,9 +627,9 @@ source "main.ch"
                   <label>
                     Compiler Version
                     <select id="opt-version">
-                      <option value="30" selected>v0.0.30</option>
+                      <option value="32" selected>v0.0.32</option>
+                      <option value="30">v0.0.30</option>
                       <option value="29">v0.0.29</option>
-                      <option value="28">v0.0.28</option>
                     </select>
                   </label>
                   <label>

@@ -284,7 +284,7 @@ func compile_files_in_docker(settings : &CompileSettings, outputType : OutputTyp
         var res = DockerCompilationResult()
         res.status = -1
         var error_msg = &mut res.error_msg;
-        error_msg.append_expr(`couldn't create workspace dir at '{host_dir.data()}' because '{msg.data()}'`)
+        error_msg.append_expr(`couldn't create workspace dir at '${host_dir}' because '${msg}'`)
         return res
     }
 
@@ -296,7 +296,7 @@ func compile_files_in_docker(settings : &CompileSettings, outputType : OutputTyp
         var res = DockerCompilationResult()
         res.status = -1
         var error_msg = &mut res.error_msg;
-        error_msg.append_expr(`couldn't set permissions on host directory '{host_dir.data()}'`)
+        error_msg.append_expr(`couldn't set permissions on host directory '${host_dir}'`)
         return res
     }
 
@@ -336,7 +336,7 @@ func compile_files_in_docker(settings : &CompileSettings, outputType : OutputTyp
             var res = DockerCompilationResult()
             res.status = -1
             var error_msg = &mut res.error_msg;
-            error_msg.append_expr(`couldn't write file '{path.data()}' in workspace '{msg.data()}'`)
+            error_msg.append_expr(`couldn't write file '${path}' in workspace '${msg}'`)
             fs::remove_dir_all_recursive(host_dir.data())
             return res
         }
@@ -431,14 +431,14 @@ func compile_files_in_docker(settings : &CompileSettings, outputType : OutputTyp
     var image_name = std::string()
     image_name.append_view(std::string_view("chemicallang/chemical:v0.0."))
     switch(settings.version) {
-        30, default => {
+        32, default => {
+            image_name.append_view(std::string_view("32"))
+        }
+        30 => {
             image_name.append_view(std::string_view("30"))
         }
         29 => {
             image_name.append_view(std::string_view("29"))
-        }
-        28 => {
-            image_name.append_view(std::string_view("28"))
         }
     }
     image_name.append_view(std::string_view("-ubuntu"))
@@ -478,7 +478,7 @@ func compile_files_in_docker(settings : &CompileSettings, outputType : OutputTyp
             res.stdout_and_stderr = std::replace(procRes.output, std::string())
             res.output = std::string() // empty
             var error_msg = &mut res.error_msg;
-            error_msg.append_expr(`couldn't read output file '{finalOutPath.data()}' because {msg.data()}`)
+            error_msg.append_expr(`couldn't read output file '${finalOutPath}' because ${msg}`)
             // cleanup
             var rem_res = fs::remove_dir_all_recursive(host_dir.data())
             if (rem_res is std.Result.Err) {

@@ -171,6 +171,18 @@ public func main(argc : int, argv : **char) : int {
         res.write_view(std::string_view("Redirecting to install script...\n"));
     })
 
+    srv.router.add("GET", "/test.sh", (req, res) => {
+        res.status = 302u;
+        res.set_header_view(std::string_view("Location"), std::string_view("https://raw.githubusercontent.com/chemicallang/chemical/main/scripts/run-tests.sh"));
+        res.write_view(std::string_view("Redirecting to test script...\n"));
+    })
+
+    srv.router.add("GET", "/test.ps1", (req, res) => {
+        res.status = 302u;
+        res.set_header_view(std::string_view("Location"), std::string_view("https://raw.githubusercontent.com/chemicallang/chemical/main/scripts/run-tests.ps1"));
+        res.write_view(std::string_view("Redirecting to test script...\n"));
+    })
+
     srv.router.add("POST", "/submit", (req, res) => {
         res.set_header_view(std::string_view("Content-Type"), std::string_view("application/json; charset=utf-8"));
         var body_opt = req.body.read_to_string()
@@ -255,14 +267,14 @@ public func main(argc : int, argv : **char) : int {
                             if (s_version != null && s_version is JsonValue.String) {
                                 var String(v_str) = *s_version else unreachable;
                                 switch(fnv1_hash_view(v_str.to_view())) {
-                                    comptime_fnv1_hash("30"), default => {
+                                    comptime_fnv1_hash("32"), default => {
+                                        settings.version = 32;
+                                    }
+                                    comptime_fnv1_hash("30") => {
                                         settings.version = 30;
                                     }
                                     comptime_fnv1_hash("29") => {
                                         settings.version = 29;
-                                    }
-                                    comptime_fnv1_hash("28") => {
-                                        settings.version = 28;
                                     }
                                 }
                             }

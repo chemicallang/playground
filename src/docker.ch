@@ -176,7 +176,7 @@ public func run_docker(container_name: &std.string, host_dir: &std.string, image
 
 }
 
-public func run_docker_with_timeout(container_name: &std.string, host_dir: &std.string, image_name: &std.string, timeout_ms: ulong) : ExecResult {
+public func run_docker_with_timeout(container_name: &std.string, host_dir: &std.string, image_name: &std.string) : ExecResult {
     var res_promise = malloc(sizeof(std.concurrent.Promise<ExecResult>)) as *mut std.concurrent.Promise<ExecResult>;
     new(res_promise) std.concurrent.Promise<ExecResult>();
 
@@ -185,7 +185,7 @@ public func run_docker_with_timeout(container_name: &std.string, host_dir: &std.
     
     // Add OS-level timeout on Linux for extra safety
     if(!def.windows) {
-        docker_cmd.append_view(std::string_view("timeout 65s "));
+        docker_cmd.append_view(std::string_view("timeout 10s "));
     }
 
    // Use conservative flags (see my previous message). You can tweak memory/cpus.
@@ -215,6 +215,7 @@ public func run_docker_with_timeout(container_name: &std.string, host_dir: &std.
     var worker_thread = std.concurrent.spawn(docker_timeout_worker_fn, &mut cap as *mut void);
 
     // Timeout monitoring loop
+    var timeout_ms = 10 * 1000 // 10s
     var elapsed: ulong = 0;
     var interval: ulong = 50; // check every 50ms
     var finished: bool = false;
@@ -444,7 +445,7 @@ func compile_files_in_docker(settings : &CompileSettings, outputType : OutputTyp
     image_name.append_view(std::string_view("-ubuntu"))
 
     // run the docker command using your run_command helper (captures combined stdout+stderr)
-    var procRes = run_docker_with_timeout(container_name, host_dir, image_name, 20u * 1000u)
+    var procRes = run_docker_with_timeout(container_name, host_dir, image_name)
     // procRes.status is exit code of docker run (if docker CLI succeeded it will be the exit code of the process inside container).
     // procRes.output is combined stdout+stderr from docker run
 

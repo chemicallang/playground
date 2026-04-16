@@ -444,7 +444,7 @@ func compile_files_in_docker(settings : &CompileSettings, outputType : OutputTyp
     image_name.append_view(std::string_view("-ubuntu"))
 
     // run the docker command using your run_command helper (captures combined stdout+stderr)
-    var procRes = run_docker_with_timeout(container_name, host_dir, image_name, 60u * 1000u)
+    var procRes = run_docker_with_timeout(container_name, host_dir, image_name, 20u * 1000u)
     // procRes.status is exit code of docker run (if docker CLI succeeded it will be the exit code of the process inside container).
     // procRes.output is combined stdout+stderr from docker run
 

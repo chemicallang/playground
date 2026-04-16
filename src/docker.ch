@@ -159,7 +159,7 @@ public func run_docker(container_name: &std.string, host_dir: &std.string, image
     docker_cmd.append_view(std::string_view(" --workdir /work --network none --user 1000:1000 --cap-drop ALL"))
     docker_cmd.append_view(std::string_view(" --security-opt no-new-privileges")); // no new privs
     // resource limits
-    docker_cmd.append_view(std::string_view(" --pids-limit=32 --memory=256m --memory-swap=512m --cpus=0.25 --ulimit core=0"));
+    docker_cmd.append_view(std::string_view(" --pids-limit=32 --memory=128m --memory-swap=256m --cpus=0.25 --ulimit core=0"));
     // make root filesystem read-only (only /work will be writable via a volume/tmpfs)
     docker_cmd.append_view(std::string_view(" --read-only"));
     docker_cmd.append_view(std::string_view(" --tmpfs /tmp:rw,mode=1777 -e TMPDIR=/work"));
@@ -182,13 +182,19 @@ public func run_docker_with_timeout(container_name: &std.string, host_dir: &std.
 
     // Build docker run command
     var docker_cmd = std.string();
+    
+    // Add OS-level timeout on Linux for extra safety
+    if(!def.windows) {
+        docker_cmd.append_view(std::string_view("timeout 65s "));
+    }
+
    // Use conservative flags (see my previous message). You can tweak memory/cpus.
    docker_cmd.append_view(std::string_view("docker run --rm --name "))
    docker_cmd.append_string(container_name)
    docker_cmd.append_view(std::string_view(" --workdir /work --network none --user 1000:1000 --cap-drop ALL"))
    docker_cmd.append_view(std::string_view(" --security-opt no-new-privileges")); // no new privs
    // resource limits
-   docker_cmd.append_view(std::string_view(" --pids-limit=32 --memory=256m --memory-swap=512m --cpus=0.25 --ulimit core=0"));
+   docker_cmd.append_view(std::string_view(" --pids-limit=32 --memory=128m --memory-swap=256m --cpus=0.25 --ulimit core=0"));
    // make root filesystem read-only (only /work will be writable via a volume/tmpfs)
    docker_cmd.append_view(std::string_view(" --read-only"));
    docker_cmd.append_view(std::string_view(" --tmpfs /tmp:rw,mode=1777 -e TMPDIR=/work"));

@@ -99,7 +99,8 @@ public func main(argc : int, argv : **char) : int {
 
     // create default config (you can customize fields)
     var cfg = server.ServerConfig();
-    cfg.worker_count = std.concurrent.hardware_threads() as uint;
+    var hw_threads = std.concurrent.hardware_threads() as uint;
+    cfg.worker_count = if (hw_threads < 4u) 4u else hw_threads;
     cfg.header_timeout_secs = 5;
     cfg.max_header_bytes = 64u * 1024u;
     cfg.max_headers = 512u;

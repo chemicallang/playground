@@ -107,7 +107,7 @@ func _quote_arg_for_cmd(a : &std::string) : std::string {
         if (ch == '"') {
             out.append_view(std::string_view("\\\"")) // escape quote
         } else {
-            out.append_with_len(&a.data()[i], 1)
+            out.append_with_len(&raw a.data()[i], 1)
         }
     }
     out.append('"')
@@ -229,7 +229,7 @@ public func launch_exe(args : &std::vector<std::string>) : ProcResult {
         var fds : [2]int
         fds[0] = 0
         fds[1] = 0
-        if (pipe(&mut fds[0]) != 0) {
+        if (pipe(&raw mut fds[0]) != 0) {
             result.output = std::string("pipe failed")
             return result
         }
@@ -270,7 +270,7 @@ public func launch_exe(args : &std::vector<std::string>) : ProcResult {
             // close write end, read from read end
             close(fds[1])
             var buf : [4096]u8
-            memset(&mut buf[0], 0, sizeof(buf))
+            memset(&raw mut buf[0], 0, sizeof(buf))
             while (true) {
                 var n = read(fds[0], &mut buf[0] as *mut void, 4096 as size_t)
                 if (n <= 0) { break; }
@@ -280,7 +280,7 @@ public func launch_exe(args : &std::vector<std::string>) : ProcResult {
 
             // wait for child
             var status : int = 0
-            if (waitpid(pid, &mut status, 0) < 0) {
+            if (waitpid(pid, &raw mut status, 0) < 0) {
                 result.output.append_view(std::string_view("waitpid failed"))
                 result.exit_code = -1
                 return result

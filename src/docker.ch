@@ -24,7 +24,7 @@ func write_entrypoint_script_new(settings : &CompileSettings, outputType : Outpu
 
     // script path
     var script_path = std::string()
-    script_path.append_string(host_dir)
+    script_path.append_string(&host_dir)
     script_path.append_view(std::string_view("/run_compile.sh"))
 
     // script content (POSIX shell). Note: on Windows docker images you'll still run this inside *container* POSIX shell if image has sh.
@@ -44,12 +44,12 @@ func write_entrypoint_script_new(settings : &CompileSettings, outputType : Outpu
         ];
         var okMode = false;
         for (var i=0; i < 6; i++) {
-            if (settings.mode.equals_view(modesAllowed[i])) { okMode = true; break; }
+            if (settings.mode.equals_view(&modesAllowed[i])) { okMode = true; break; }
         }
         if (okMode) {
             // quote mode
             content.append_view(std::string_view(" --mode '"));
-            content.append_string(settings.mode);
+            content.append_string(&settings.mode);
             content.append_view(std::string_view("'"));
         }
     }
@@ -207,7 +207,7 @@ public func run_docker_with_timeout(container_name: &std.string, host_dir: &std.
    docker_cmd.append_view(std::string_view(" sh /work/run_compile.sh"))
 
     var cap = docker_worker_captured {
-        docker_cmd : &docker_cmd,
+        docker_cmd : &raw docker_cmd,
         promise : res_promise
     }
 
@@ -244,7 +244,7 @@ public func run_docker_with_timeout(container_name: &std.string, host_dir: &std.
     // Get the result from promise (partial output if killed)
     var result: ExecResult;
     if(res_promise.ready) {
-        result = std::replace(res_promise.val, ExecResult());
+        result = std::replace(&mut res_promise.val, ExecResult());
     } else {
         // Timeout case: create dummy result
         result = ExecResult();
@@ -263,8 +263,8 @@ func compile_files_in_docker(settings : &CompileSettings, outputType : OutputTyp
     var temp : [13]char
     var r1 = generate_random_32bit()
     var r2 = generate_random_32bit()
-    base64_encode_32bit(r1, &mut temp[0])
-    base64_encode_32bit(r2, &mut temp[6])
+    base64_encode_32bit(r1, &raw mut temp[0])
+    base64_encode_32bit(r2, &raw mut temp[6])
     temp[12] = '\0'
     var dir_name = std::string_view(&temp[0], 12)
 
@@ -276,7 +276,7 @@ func compile_files_in_docker(settings : &CompileSettings, outputType : OutputTyp
         host_dir.append_view(std::string_view("/home/playground/app/play-"))
     }
 
-    host_dir.append_view(dir_name)
+    host_dir.append_view(&dir_name)
 
     var created = fs::create_dir(host_dir.data())
     if (created is std.Result.Err) {
@@ -323,12 +323,12 @@ func compile_files_in_docker(settings : &CompileSettings, outputType : OutputTyp
         }
         var path = std::string()
         // normalize path join with forward slash inside workspace
-        path.append_string(host_dir)
+        path.append_string(&host_dir)
         // ensure backslash on Windows and forward slash on POSIX inside host path is OK; Docker will map host path
         if (path.size() > 0 && path.get(path.size() - 1) != '/' && path.get(path.size() - 1) != '\\') {
             path.append_view(std::string_view("/"))
         }
-        path.append_string(file.first)
+        path.append_string(&file.first)
         var written = fs::write_text_file(path.data(), file.second.data() as *u8, file.second.size())
         if (written is std.Result.Err) {
             var Err(err) = written else unreachable;
@@ -395,7 +395,7 @@ func compile_files_in_docker(settings : &CompileSettings, outputType : OutputTyp
         // 1) clear any ACLs recursively (harmless if none)
         var cmd_clear_acl = std::string();
         cmd_clear_acl.append_view(std::string_view("setfacl -bR '"));
-        cmd_clear_acl.append_string(esc);
+        cmd_clear_acl.append_string(&esc);
         cmd_clear_acl.append_view(std::string_view("' 2>/dev/null || true"));
         var rc1 = system(cmd_clear_acl.data());
         if (rc1 != 0) {
@@ -405,7 +405,7 @@ func compile_files_in_docker(settings : &CompileSettings, outputType : OutputTyp
         // 2) set sane unix permissions: dirs get +x (X), files get rw for owner/group, r for others
         var cmd_chmod = std::string();
         cmd_chmod.append_view(std::string_view("chmod -R u=rwX,g=rwX,o=rx '"));
-        cmd_chmod.append_string(esc);
+        cmd_chmod.append_string(&esc);
         cmd_chmod.append_view(std::string_view("' 2>/dev/null || true"));
         var rc2 = system(cmd_chmod.data());
         if (rc2 != 0) {
@@ -415,7 +415,7 @@ func compile_files_in_docker(settings : &CompileSettings, outputType : OutputTyp
         // 3) chown everything to the unprivileged container user (UID 1000) so builds can write
         var cmd_chown = std::string();
         cmd_chown.append_view(std::string_view("chown -R 1000:1000 '"));
-        cmd_chown.append_string(esc);
+        cmd_chown.append_string(&esc);
         cmd_chown.append_view(std::string_view("' 2>/dev/null || true"));
         var rc3 = system(cmd_chown.data());
         if (rc3 != 0) {
@@ -427,7 +427,7 @@ func compile_files_in_docker(settings : &CompileSettings, outputType : OutputTyp
     // We mount host_dir -> /work inside container and run "sh /work/run_compile.sh"
     var container_name = std::string()
     container_name.append_view(std::string_view("chemical-play-"))
-    container_name.append_view(dir_name)
+    container_name.append_view(&dir_name)
 
     var image_name = std::string()
     image_name.append_view(std::string_view("chemicallang/chemical:v0.0."))
@@ -445,21 +445,21 @@ func compile_files_in_docker(settings : &CompileSettings, outputType : OutputTyp
     image_name.append_view(std::string_view("-ubuntu"))
 
     // run the docker command using your run_command helper (captures combined stdout+stderr)
-    var procRes = run_docker_with_timeout(container_name, host_dir, image_name)
+    var procRes = run_docker_with_timeout(&container_name, &host_dir, &image_name)
     // procRes.status is exit code of docker run (if docker CLI succeeded it will be the exit code of the process inside container).
     // procRes.output is combined stdout+stderr from docker run
 
     // read the expected output file from host_dir
     var finalOutPath = std::string()
     if (outputType == OutputType.CTranslation) {
-        finalOutPath.append_string(host_dir)
+        finalOutPath.append_string(&host_dir)
         finalOutPath.append('/');
-        finalOutPath.append_view(outputFilePath)
+        finalOutPath.append_view(&outputFilePath)
     } else if(outputType == OutputType.LLVMIR) {
-        finalOutPath.append_string(host_dir)
+        finalOutPath.append_string(&host_dir)
         finalOutPath.append_view(std::string_view("/build/main/llvm_ir.ll"))
     } else if(outputType == OutputType.AssemblyOutput) {
-        finalOutPath.append_string(host_dir)
+        finalOutPath.append_string(&host_dir)
         finalOutPath.append_view(std::string_view("/build/main/mod_asm.s"))
     } else {
         // keep final output path empty, as no file to read
@@ -468,7 +468,7 @@ func compile_files_in_docker(settings : &CompileSettings, outputType : OutputTyp
     var read_res = fs::read_entire_file(finalOutPath.data())
     var out_file_content = std::string()
     if(finalOutPath.empty()) {
-        out_file_content.append_string(procRes.output)
+        out_file_content.append_string(&procRes.output)
     } else {
         if (read_res is std.Result.Err) {
             var Err(err) = read_res else unreachable;
@@ -476,7 +476,7 @@ func compile_files_in_docker(settings : &CompileSettings, outputType : OutputTyp
             // Could not read output — return whatever logs we have
             var res = DockerCompilationResult()
             res.status = procRes.status
-            res.stdout_and_stderr = std::replace(procRes.output, std::string())
+            res.stdout_and_stderr = std::replace(&mut procRes.output, std::string())
             res.output = std::string() // empty
             var error_msg = &mut res.error_msg;
             error_msg.append_expr(`couldn't read output file '${finalOutPath}' because ${msg}`)
@@ -506,7 +506,7 @@ func compile_files_in_docker(settings : &CompileSettings, outputType : OutputTyp
     // return success
     var cres = DockerCompilationResult()
     cres.status = procRes.status
-    cres.stdout_and_stderr = std::replace(procRes.output, std::string())
+    cres.stdout_and_stderr = std::replace(&mut procRes.output, std::string())
     cres.output = out_file_content
     return cres
 }

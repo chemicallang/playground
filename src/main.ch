@@ -11,7 +11,7 @@ public func (value : &mut JsonValue) take_string() : std::string {
     var String(str) = value else unreachable
     // TODO: can't move while pattern matching
     var my_str = std::string()
-    my_str.append_string(str)
+    my_str.append_string(&str)
     return my_str;
 }
 
@@ -33,7 +33,7 @@ if (def.windows) {
 public func run_command(cmd_view : std::string_view) : ExecResult {
     // build command and redirect stderr into stdout
     var cmd = std::string()
-    cmd.append_view(cmd_view)
+    cmd.append_view(&cmd_view)
     cmd.append_view(std::string_view(" 2>&1"))
 
     // open pipe
@@ -53,9 +53,9 @@ public func run_command(cmd_view : std::string_view) : ExecResult {
     // read all output
     var out = std::string()
     var buf : [4096]u8
-    memset(&mut buf, 0, sizeof(buf))
+    memset(&raw mut buf, 0, sizeof(buf))
     while (true) {
-        var n = fread(&mut buf[0], 1 as size_t, 4096 as size_t, pipe as *mut FILE)
+        var n = fread(&raw mut buf[0], 1 as size_t, 4096 as size_t, pipe as *mut FILE)
         if (n == 0) { break; }
         // append raw bytes (cast to char pointer)
         out.append_with_len((&buf[0]) as *char, n as size_t)
@@ -120,13 +120,13 @@ public func main(argc : int, argv : **char) : int {
     printf("logo path : %s\n", which_logo.data());
 
     var main_page = HtmlPage()
-    MainPage(main_page)
+    MainPage(&mut main_page)
     main_page.appendTitle("Chemical | Programming Language")
     main_page.appendPngFavicon("Favicon.png")
     var completeMainPage = main_page.toString();
 
     var pgPage = HtmlPage()
-    PlaygroundPage(pgPage)
+    PlaygroundPage(&mut pgPage)
     pgPage.appendTitle("Playground | Chemical")
     pgPage.appendPngFavicon("Favicon.png")
     var completePgPage = pgPage.toString();
@@ -195,7 +195,7 @@ public func main(argc : int, argv : **char) : int {
             var Some(value) = body_opt else unreachable
             var parser = JsonParser(128, 4096)
             var astHandler = ASTJsonHandler()
-            var result = parser.parse(value.data(), value.size(), astHandler)
+            var result = parser.parse(value.data(), value.size(), &mut astHandler)
             if(result.ok) {
                 if(astHandler.root is JsonValue.Object) {
                     var Object(values) = astHandler.root else unreachable
@@ -285,16 +285,16 @@ public func main(argc : int, argv : **char) : int {
                             }
                         }
 
-                        var result2 = compile_files_in_docker(settings, ot, files)
+                        var result2 = compile_files_in_docker(&settings, ot, &mut files)
                         if(!result2.error_msg.empty()) {
                             var err_json = std::string()
-                            var builder = JsonStringBuilder{ ptr : err_json }
+                            var builder = JsonStringBuilder{ ptr : &mut err_json }
                             
                             err_json.append_view(std::string_view("""{ "type" : "error", "message" : """))
                             
                             var msg_str = std::string()
                             msg_str.append_view(result2.error_msg.to_view())
-                            escape_string_into(builder, msg_str)
+                            escape_string_into(&builder, &msg_str)
                             
                             err_json.append_view(std::string_view(""" }"""))
                             
@@ -305,11 +305,11 @@ public func main(argc : int, argv : **char) : int {
 
                         // preparing the final view
                         var final = std::string()
-                        var builder = JsonStringBuilder{ ptr : final }
+                        var builder = JsonStringBuilder{ ptr : &mut final }
                         final.append_view(std::string_view("{ \"type\" : \"output\", \"status\" : "))
                         final.append_integer(result2.status)
                         final.append_view(std::string_view(", \"output\" : "))
-                        escape_string_into(builder, result2.output)
+                        escape_string_into(&builder, &result2.output)
                         final.append_view(std::string_view(" }"))
 
                         res.write_view(final.to_view())

@@ -107,7 +107,7 @@ func _quote_arg_for_cmd(a : &std::string) : std::string {
         if (ch == '"') {
             out.append_view(std::string_view("\\\"")) // escape quote
         } else {
-            out.append_with_len(&a.data()[i], 1)
+            out.append_with_len(&raw a.data()[i], 1)
         }
     }
     out.append('"')
@@ -134,7 +134,7 @@ public func launch_exe(args : &std::vector<std::string>) : ProcResult {
 
         var out_read : HANDLE = null
         var out_write : HANDLE = null
-        if (!CreatePipe(&mut out_read, &mut out_write, &mut sa, 0)) {
+        if (!CreatePipe(&raw mut out_read, &raw mut out_write, &raw mut sa, 0)) {
             result.output = std::string("CreatePipe failed")
             return result
         }
@@ -143,23 +143,23 @@ public func launch_exe(args : &std::vector<std::string>) : ProcResult {
 
         var si : STARTUPINFOA
         var pi : PROCESS_INFORMATION
-        ZeroMemory(&mut si, sizeof(si))
+        ZeroMemory(&raw mut si, sizeof(si))
         si.cb = sizeof(si)
         si.dwFlags = STARTF_USESTDHANDLES
         si.hStdOutput = out_write
         si.hStdError  = out_write
         si.hStdInput  = GetStdHandle(STD_INPUT_HANDLE as DWORD) // keep parent's stdin
 
-        ZeroMemory(&mut pi, sizeof(pi))
+        ZeroMemory(&raw mut pi, sizeof(pi))
 
         // Build mutable commandline: first arg is program, follow with quoted args
         var cmd : std::string = std::string()
         // first arg (executable) - quote if needed
-        cmd.append_string(_quote_arg_for_cmd(*args.get_ptr(0)))
+        cmd.append_string(_quote_arg_for_cmd(&*args.get_ptr(0)))
         for (var i = 1; i < args.size(); i++) {
             cmd.append(' ')
-            var q = _quote_arg_for_cmd(*args.get_ptr(i as size_t))
-            cmd.append_string(q)
+            var q = _quote_arg_for_cmd(&*args.get_ptr(i as size_t))
+            cmd.append_string(&q)
         }
 
         // CreateProcessA wants a mutable char buffer
@@ -172,8 +172,8 @@ public func launch_exe(args : &std::vector<std::string>) : ProcResult {
             0,
             null,
             null,
-            &mut si,
-            &mut pi
+            &raw mut si,
+            &raw mut pi
         )
 
         // close local write handle in parent after CreateProcess (child has its own)
@@ -187,9 +187,9 @@ public func launch_exe(args : &std::vector<std::string>) : ProcResult {
             msg.append_view(std::string_view("CreateProcessA failed: "))
             // convert error number to decimal text quickly
             var buf : [64]char
-            memset(&mut buf[0], 0, sizeof(buf))
-            sprintf(&mut buf[0], "%lu", e as ulong)
-            msg.append_with_len((&buf[0]) as *char, strlen(&mut buf[0]))
+            memset(&raw mut buf[0], 0, sizeof(buf))
+            sprintf(&raw mut buf[0], "%lu", e as ulong)
+            msg.append_with_len((&buf[0]) as *char, strlen(&raw mut buf[0]))
             result.output = msg
             // ensure handles closed
             if (out_read != null) { CloseHandle(out_read) }
@@ -198,10 +198,10 @@ public func launch_exe(args : &std::vector<std::string>) : ProcResult {
 
         // read from pipe until EOF
         var buf : [4096]u8
-        memset(&mut buf[0], 0, sizeof(buf))
+        memset(&raw mut buf[0], 0, sizeof(buf))
         while (true) {
             var read_bytes : DWORD = 0
-            var okr = ReadFile(out_read, &mut buf[0] as *mut void, 4096 as DWORD, &mut read_bytes, null)
+            var okr = ReadFile(out_read, &mut buf[0] as *mut void, 4096 as DWORD, &raw mut read_bytes, null)
             if (!okr || read_bytes == 0) { break; }
             result.output.append_with_len((&buf[0]) as *char, read_bytes as size_t)
         }
@@ -210,7 +210,7 @@ public func launch_exe(args : &std::vector<std::string>) : ProcResult {
         WaitForSingleObject(pi.hProcess, INFINITE as DWORD)
 
         var exitCode : DWORD = 0
-        if (GetExitCodeProcess(pi.hProcess, &mut exitCode)) {
+        if (GetExitCodeProcess(pi.hProcess, &raw mut exitCode)) {
             result.exit_code = exitCode as int
             result.success = true
         } else {
@@ -229,7 +229,7 @@ public func launch_exe(args : &std::vector<std::string>) : ProcResult {
         var fds : [2]int
         fds[0] = 0
         fds[1] = 0
-        if (pipe(&mut fds[0]) != 0) {
+        if (pipe(&raw mut fds[0]) != 0) {
             result.output = std::string("pipe failed")
             return result
         }
@@ -270,7 +270,7 @@ public func launch_exe(args : &std::vector<std::string>) : ProcResult {
             // close write end, read from read end
             close(fds[1])
             var buf : [4096]u8
-            memset(&mut buf[0], 0, sizeof(buf))
+            memset(&raw mut buf[0], 0, sizeof(buf))
             while (true) {
                 var n = read(fds[0], &mut buf[0] as *mut void, 4096 as size_t)
                 if (n <= 0) { break; }
@@ -280,7 +280,7 @@ public func launch_exe(args : &std::vector<std::string>) : ProcResult {
 
             // wait for child
             var status : int = 0
-            if (waitpid(pid, &mut status, 0) < 0) {
+            if (waitpid(pid, &raw mut status, 0) < 0) {
                 result.output.append_view(std::string_view("waitpid failed"))
                 result.exit_code = -1
                 return result

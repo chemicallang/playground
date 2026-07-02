@@ -30,10 +30,10 @@ public func main() : int {
     vec.push(30)
     vec.push(40)
     printf("Your vector contains : ")
-    print_vec(vec)
+    print_vec(&vec)
     vec.clear()
     printf("Your vector contains : ")
-    print_vec(vec)
+    print_vec(&vec)
 
     // creating map
     var map = std::unordered_map<std::string_view, std::string_view>()
@@ -42,7 +42,7 @@ public func main() : int {
     map.insert(std::string_view("person3"), std::string_view("Sarah"))
     map.insert(std::string_view("person4"), std::string_view("Scott"))
     map.insert(std::string_view("person5"), std::string_view("Yuri"))
-    print_map(map)
+    print_map(&map)
     printf("does the map contain person5 ? ");
     if(map.contains(std::string_view("person5"))) {
         printf("Yes\\n");
@@ -58,7 +58,7 @@ public func main() : int {
     return 0;
 }
 
-func print_vec(vec : &mut std::vector<int>) {
+func print_vec(vec : &std::vector<int>) {
     var start = vec.data()
     const end = start + vec.size()
     if(start == end) {
@@ -72,7 +72,7 @@ func print_vec(vec : &mut std::vector<int>) {
     printf("\\n");
 }
 
-func print_map(map : &mut std::unordered_map<std::string_view, std::string_view>) {
+func print_map(map : &std::unordered_map<std::string_view, std::string_view>) {
     printf("your map contains: {\\n");
     var itr = map.iterator()
     while(itr.valid()) {

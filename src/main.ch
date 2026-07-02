@@ -137,6 +137,11 @@ public func main(argc : int, argv : **char) : int {
         res.write_view(completeMainPage.to_view());
     }));
 
+    // HEAD request handler (used by Microsoft to check domain ownership)
+    srv.router.add("HEAD", "/", (req,res) => {
+        res.status = 200u;
+    })
+
     // Register root handler
     srv.router.add("GET", "/playground", (|&completePgPage|(req,res) => {
         res.set_header_view(std::string_view("Content-Type"), std::string_view("text/html; charset=utf-8"));

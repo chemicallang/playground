@@ -139,7 +139,9 @@ public func main(argc : int, argv : **char) : int {
 
     // HEAD request handler (used by Microsoft to check domain ownership)
     srv.router.add("HEAD", "/", (req,res) => {
+        res.set_cors(std::string_view("*"));
         res.status = 200u;
+        res.write_view(std::string_view());
     })
 
     // Register root handler

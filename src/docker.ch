@@ -17,7 +17,7 @@ public struct CompileSettings {
     var benchmark : bool = false;
     var bm_files : bool = false;
     var bm_modules : bool = false;
-    var version : int = 29;
+    var version : int = V_55;
 }
 
 func write_entrypoint_script_new(settings : &CompileSettings, outputType : OutputType, host_dir : std::string) : std::Result<UnitTy, fs::FsError> {
@@ -430,19 +430,8 @@ func compile_files_in_docker(settings : &CompileSettings, outputType : OutputTyp
     container_name.append_view(&dir_name)
 
     var image_name = std::string()
-    image_name.append_view(std::string_view("chemicallang/chemical:v0.0."))
-    switch(settings.version) {
-        32, default => {
-            image_name.append_view(std::string_view("32"))
-        }
-        30 => {
-            image_name.append_view(std::string_view("30"))
-        }
-        29 => {
-            image_name.append_view(std::string_view("29"))
-        }
-    }
-    image_name.append_view(std::string_view("-ubuntu"))
+    image_name.append_view(std::string_view("chemicallang/chemical:"))
+    image_name.append_view(docker_tag_suffix(settings.version))
 
     // run the docker command using your run_command helper (captures combined stdout+stderr)
     var procRes = run_docker_with_timeout(&container_name, &host_dir, &image_name)

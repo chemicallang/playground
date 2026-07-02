@@ -627,9 +627,7 @@ source "main.ch"
                   <label>
                     Compiler Version
                     <select id="opt-version">
-                      <option value="32" selected>v0.0.32</option>
-                      <option value="30">v0.0.30</option>
-                      <option value="29">v0.0.29</option>
+{version_options_html()}
                     </select>
                   </label>
                   <label>

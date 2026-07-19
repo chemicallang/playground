@@ -152,6 +152,19 @@ func PlaygroundPage(page : &mut HtmlPage) {
         <script>window.exprStrTabs = create_tabs_from_comp_set(`{exprStrCompSet.main}`, `{exprStrCompSet.mod}`)</script>
         <script>window.embeddedLangsTabs = create_tabs_from_comp_set(`{embeddedLangsCompSet.main}`, `{embeddedLangsCompSet.mod}`)</script>
         <script>window.componentTabs = create_tabs_from_comp_set(`{componentsCompSet.main}`, `{componentsCompSet.mod}`)</script>
+<script>window.fileopsTabs = create_tabs_from_comp_set(`{getFileopsSet().main}`, `{getFileopsSet().mod}`)</script>
+<script>window.timetellerTabs = create_tabs_from_comp_set(`{getTimetellerSet().main}`, `{getTimetellerSet().mod}`)</script>
+<script>window.jsnTabs = create_tabs_from_comp_set(`{getJsnSet().main}`, `{getJsnSet().mod}`)</script>
+<script>window.uuidgenTabs = create_tabs_from_comp_set(`{getUuidgenSet().main}`, `{getUuidgenSet().mod}`)</script>
+<script>window.hashpassTabs = create_tabs_from_comp_set(`{getHashpassSet().main}`, `{getHashpassSet().mod}`)</script>
+<script>window.fetchrTabs = create_tabs_from_comp_set(`{getFetchrSet().main}`, `{getFetchrSet().mod}`)</script>
+<script>window.envbeeTabs = create_tabs_from_comp_set(`{getEnvbeeSet().main}`, `{getEnvbeeSet().mod}`)</script>
+<script>window.runprocTabs = create_tabs_from_comp_set(`{getRunprocSet().main}`, `{getRunprocSet().mod}`)</script>
+<script>window.pathwaysTabs = create_tabs_from_comp_set(`{getPathwaysSet().main}`, `{getPathwaysSet().mod}`)</script>
+<script>window.digestTabs = create_tabs_from_comp_set(`{getDigestSet().main}`, `{getDigestSet().mod}`)</script>
+<script>window.shrinkitTabs = create_tabs_from_comp_set(`{getShrinkitSet().main}`, `{getShrinkitSet().mod}`)</script>
+<script>window.hexitTabs = create_tabs_from_comp_set(`{getHexitSet().main}`, `{getHexitSet().mod}`)</script>
+<script>window.docsmithTabs = create_tabs_from_comp_set(`{getDocsmithSet().main}`, `{getDocsmithSet().mod}`)</script>
         <script>{"""
 
             window.mostBasicTabs = create_tabs_from_comp_set(`@extern
@@ -342,6 +355,19 @@ source "main.ch"
                         case '3': setTabs(window.exprStrTabs); break;
                         case '4': setTabs(window.embeddedLangsTabs); break;
                         case '5': setTabs(window.componentTabs); break;
+                        case '6': setTabs(window.fileopsTabs); break;
+                        case '7': setTabs(window.timetellerTabs); break;
+                        case '8': setTabs(window.jsnTabs); break;
+                        case '9': setTabs(window.uuidgenTabs); break;
+                        case '10': setTabs(window.hashpassTabs); break;
+                        case '11': setTabs(window.fetchrTabs); break;
+                        case '12': setTabs(window.envbeeTabs); break;
+                        case '13': setTabs(window.runprocTabs); break;
+                        case '14': setTabs(window.pathwaysTabs); break;
+                        case '15': setTabs(window.digestTabs); break;
+                        case '16': setTabs(window.shrinkitTabs); break;
+                        case '17': setTabs(window.hexitTabs); break;
+                        case '18': setTabs(window.docsmithTabs); break;
                     }
                 });
 
@@ -548,6 +574,19 @@ source "main.ch"
                             <option value="3" class={tab_select_opt(page)}>Expressive Strings</option>
                             <option value="4" class={tab_select_opt(page)}>Embedded Languages</option>
                             <option value="5" class={tab_select_opt(page)}>Component Frameworks</option>
+                            <option value="6" class={tab_select_opt(page)}>File System</option>
+                            <option value="7" class={tab_select_opt(page)}>Date & Time</option>
+                            <option value="8" class={tab_select_opt(page)}>JSON</option>
+                            <option value="9" class={tab_select_opt(page)}>UUID</option>
+                            <option value="10" class={tab_select_opt(page)}>Bcrypt</option>
+                            <option value="11" class={tab_select_opt(page)}>HTTP Client</option>
+                            <option value="12" class={tab_select_opt(page)}>Environment</option>
+                            <option value="13" class={tab_select_opt(page)}>Process</option>
+                            <option value="14" class={tab_select_opt(page)}>Paths</option>
+                            <option value="15" class={tab_select_opt(page)}>Crypto</option>
+                            <option value="16" class={tab_select_opt(page)}>Compression</option>
+                            <option value="17" class={tab_select_opt(page)}>Encoding</option>
+                            <option value="18" class={tab_select_opt(page)}>DocGen</option>
                         </select>
                         <button id="main-file-btn" class={editor_tab_button(page)}>main.ch</button>
                         <button id="mod-file-btn" class={editor_tab_button(page)}>chemical.mod</button>

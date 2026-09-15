@@ -1,6 +1,8 @@
 application playground
 
 source "src"
+source "app" if !test
+source "tests" if test
 
 import cstd
 import std
@@ -11,3 +13,6 @@ import page
 import net
 import http
 import fs
+
+import test if test
+import test_env if test

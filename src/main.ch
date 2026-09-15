@@ -91,3 +91,6 @@ func base64_encode_32bit(hash : u32, out : *mut char) {
     }
 }
 
+func generate_random_32bit() : u32 {
+    return (rand() as u32 << 16) | rand() as u32;
+}

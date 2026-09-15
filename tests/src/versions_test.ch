@@ -37,21 +37,28 @@ public func test_version_from_hash_unknown_falls_back_to_default(env : &mut Test
 
 @test
 public func test_docker_tag_suffix(env : &mut TestEnv) {
-    if (!docker_tag_suffix(V_55).equals_view(std::string_view("v0.5.5-ubuntu"))) { env.error("wrong tag for V_55") }
-    if (!docker_tag_suffix(V_54).equals_view(std::string_view("v0.5.4-ubuntu"))) { env.error("wrong tag for V_54") }
-    if (!docker_tag_suffix(V_53).equals_view(std::string_view("v0.5.3-ubuntu"))) { env.error("wrong tag for V_53") }
+    var tag55 = docker_tag_suffix(V_55)
+    if (!tag55.equals(std::string_view("v0.5.5-ubuntu"))) { env.error("wrong tag for V_55") }
+    var tag54 = docker_tag_suffix(V_54)
+    if (!tag54.equals(std::string_view("v0.5.4-ubuntu"))) { env.error("wrong tag for V_54") }
+    var tag53 = docker_tag_suffix(V_53)
+    if (!tag53.equals(std::string_view("v0.5.3-ubuntu"))) { env.error("wrong tag for V_53") }
 }
 
 @test
 public func test_docker_tag_suffix_fallback(env : &mut TestEnv) {
-    if (!docker_tag_suffix(1).equals_view(std::string_view("v0.5.3-ubuntu"))) { env.error("unknown version must fall back to oldest tag") }
+    var tag = docker_tag_suffix(1)
+    if (!tag.equals(std::string_view("v0.5.3-ubuntu"))) { env.error("unknown version must fall back to oldest tag") }
 }
 
 @test
 public func test_version_label(env : &mut TestEnv) {
-    if (!version_label(V_55).equals_view(std::string_view("v0.5.5"))) { env.error("wrong label for V_55") }
-    if (!version_label(V_54).equals_view(std::string_view("v0.5.4"))) { env.error("wrong label for V_54") }
-    if (!version_label(V_53).equals_view(std::string_view("v0.5.3"))) { env.error("wrong label for V_53") }
+    var l55 = version_label(V_55)
+    if (!l55.equals(std::string_view("v0.5.5"))) { env.error("wrong label for V_55") }
+    var l54 = version_label(V_54)
+    if (!l54.equals(std::string_view("v0.5.4"))) { env.error("wrong label for V_54") }
+    var l53 = version_label(V_53)
+    if (!l53.equals(std::string_view("v0.5.3"))) { env.error("wrong label for V_53") }
 }
 
 @test
@@ -69,7 +76,9 @@ public func test_version_options_html(env : &mut TestEnv) {
 public func test_version_options_html_only_default_selected(env : &mut TestEnv) {
     var html = version_options_html()
     var view = html.to_view()
-    if (view.find(std::string_view("selected")) != view.find(std::string_view("<option value=\"55\" selected>"))) {
-        env.error("only the default version may carry the selected attribute")
-    }
+    // 'selected' must appear exactly once: only the default option carries it
+    var first = view.find(std::string_view("selected"))
+    if (first == std::NPOS) { env.error("default version must be marked selected") }
+    var rest = view.skip(first + 8)
+    if (rest.find(std::string_view("selected")) != std::NPOS) { env.error("only the default version may carry the selected attribute") }
 }

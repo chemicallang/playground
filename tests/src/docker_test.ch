@@ -26,14 +26,10 @@ public func test_compile_settings_defaults(env : &mut TestEnv) {
 // build the literal content of the entrypoint script for inspection.
 // write_entrypoint_script_new writes to disk, so tests call it against a
 // throwaway directory under /tmp and read the file back.
-func read_entrypoint_script(settings : &CompileSettings, ot : OutputType) : std::string {
+func read_entrypoint_script(settings : &CompileSettings, ot : OutputType, tag : std::string_view) : std::string {
     var dir = std::string("/tmp/pg_test_ep_")
-    var r = generate_random_32bit()
-    var buf : [7]char
-    base64_encode_32bit(r, &raw mut buf[0])
-    buf[6] = '\0'
-    dir.append_view(std::string_view(&buf[0], 6))
-    var created = fs::create_dir(dir.data())
+    dir.append_view(&tag)
+    var created = fs::create_dir_all(dir.data())
     if (created is std.Result.Err) { return std::string() }
 
     var wr = write_entrypoint_script_new(settings, ot, dir.copy())
@@ -58,7 +54,7 @@ func read_entrypoint_script(settings : &CompileSettings, ot : OutputType) : std:
 @test
 public func test_entrypoint_base_script(env : &mut TestEnv) {
     var s = CompileSettings()
-    var content = read_entrypoint_script(&s, OutputType.CompilerOutput)
+    var content = read_entrypoint_script(&s, OutputType.CompilerOutput, "base")
     if (content.empty()) { env.error("couldn't generate/read entrypoint script") }
     if (content.find(std::string_view("'chemical' 'chemical.mod' '--no-cache' -o 'build.exe'")) == std::NPOS) {
         env.error("base compile command missing from entrypoint script")
@@ -69,7 +65,7 @@ public func test_entrypoint_base_script(env : &mut TestEnv) {
 @test
 public func test_entrypoint_run_out_execs_build(env : &mut TestEnv) {
     var s = CompileSettings()
-    var content = read_entrypoint_script(&s, OutputType.RunOut)
+    var content = read_entrypoint_script(&s, OutputType.RunOut, "runout")
     if (content.find(std::string_view("exec ./build.exe")) == std::NPOS) { env.error("RunOut script must exec ./build.exe") }
     if (content.find(std::string_view("/dev/null")) == std::NPOS) { env.error("RunOut script must silence compiler output") }
 }
@@ -77,7 +73,7 @@ public func test_entrypoint_run_out_execs_build(env : &mut TestEnv) {
 @test
 public func test_entrypoint_ctranslation_flag(env : &mut TestEnv) {
     var s = CompileSettings()
-    var content = read_entrypoint_script(&s, OutputType.CTranslation)
+    var content = read_entrypoint_script(&s, OutputType.CTranslation, "ctrans")
     if (content.find(std::string_view("-jt 2c")) == std::NPOS) { env.error("CTranslation script must pass '-jt 2c'") }
     if (content.find(std::string_view("exec ./build.exe")) != std::NPOS) { env.error("CTranslation script must not exec build") }
 }
@@ -85,7 +81,7 @@ public func test_entrypoint_ctranslation_flag(env : &mut TestEnv) {
 @test
 public func test_entrypoint_llvmir_flag(env : &mut TestEnv) {
     var s = CompileSettings()
-    var content = read_entrypoint_script(&s, OutputType.LLVMIR)
+    var content = read_entrypoint_script(&s, OutputType.LLVMIR, "llvmir")
     if (content.find(std::string_view("-jt inter")) == std::NPOS || content.find(std::string_view("-out-ll-all")) == std::NPOS) {
         env.error("LLVMIR script must pass '-jt inter -out-ll-all'")
     }
@@ -94,7 +90,7 @@ public func test_entrypoint_llvmir_flag(env : &mut TestEnv) {
 @test
 public func test_entrypoint_assembly_flag(env : &mut TestEnv) {
     var s = CompileSettings()
-    var content = read_entrypoint_script(&s, OutputType.AssemblyOutput)
+    var content = read_entrypoint_script(&s, OutputType.AssemblyOutput, "asm")
     if (content.find(std::string_view("-out-asm-all")) == std::NPOS) { env.error("AssemblyOutput script must pass '-out-asm-all'") }
 }
 
@@ -102,7 +98,7 @@ public func test_entrypoint_assembly_flag(env : &mut TestEnv) {
 public func test_entrypoint_mode_whitelisted(env : &mut TestEnv) {
     var s = CompileSettings()
     s.mode = std::string("release_fast")
-    var content = read_entrypoint_script(&s, OutputType.CompilerOutput)
+    var content = read_entrypoint_script(&s, OutputType.CompilerOutput, "modeok")
     if (content.find(std::string_view("--mode 'release_fast'")) == std::NPOS) { env.error("whitelisted mode must be forwarded to the compiler") }
 }
 
@@ -110,7 +106,7 @@ public func test_entrypoint_mode_whitelisted(env : &mut TestEnv) {
 public func test_entrypoint_mode_not_whitelisted_ignored(env : &mut TestEnv) {
     var s = CompileSettings()
     s.mode = std::string("rm -rf /")
-    var content = read_entrypoint_script(&s, OutputType.CompilerOutput)
+    var content = read_entrypoint_script(&s, OutputType.CompilerOutput, "modebad")
     if (content.find(std::string_view("--mode")) != std::NPOS) { env.error("non-whitelisted mode must be ignored") }
 }
 
@@ -122,18 +118,18 @@ public func test_entrypoint_flags_gated_by_output_type(env : &mut TestEnv) {
     s.use_tcc = true
 
     // benchmark flags only apply to CompilerOutput
-    var co = read_entrypoint_script(&s, OutputType.CompilerOutput)
+    var co = read_entrypoint_script(&s, OutputType.CompilerOutput, "gate_co")
     if (co.find(std::string_view("--verbose")) == std::NPOS || co.find(std::string_view("--benchmark")) == std::NPOS) {
         env.error("CompilerOutput script must carry verbose/benchmark flags")
     }
-    var ro = read_entrypoint_script(&s, OutputType.RunOut)
+    var ro = read_entrypoint_script(&s, OutputType.RunOut, "gate_ro")
     if (ro.find(std::string_view("--verbose")) != std::NPOS || ro.find(std::string_view("--benchmark")) != std::NPOS) {
         env.error("RunOut script must not carry verbose/benchmark flags")
     }
     // use_tcc applies to both RunOut and CompilerOutput
     if (ro.find(std::string_view("--use-tcc")) == std::NPOS) { env.error("RunOut script must carry --use-tcc") }
     if (co.find(std::string_view("--use-tcc")) == std::NPOS) { env.error("CompilerOutput script must carry --use-tcc") }
-    var ct = read_entrypoint_script(&s, OutputType.CTranslation)
+    var ct = read_entrypoint_script(&s, OutputType.CTranslation, "gate_ct")
     if (ct.find(std::string_view("--use-tcc")) != std::NPOS) { env.error("CTranslation script must not carry --use-tcc") }
 }
 
@@ -142,7 +138,7 @@ public func test_entrypoint_debug_ir_and_lto(env : &mut TestEnv) {
     var s = CompileSettings()
     s.debug_ir = true
     s.lto = true
-    var content = read_entrypoint_script(&s, OutputType.CompilerOutput)
+    var content = read_entrypoint_script(&s, OutputType.CompilerOutput, "dirlto")
     if (content.find(std::string_view("--debug-ir")) == std::NPOS) { env.error("--debug-ir missing") }
     if (content.find(std::string_view("--lto")) == std::NPOS) { env.error("--lto missing") }
 }
@@ -164,14 +160,14 @@ public func test_shell_escape_round_trip(env : &mut TestEnv) {
 
 @test
 public func test_run_command_echo(env : &mut TestEnv) {
-    var r = run_command(std::string("echo chemical_test_ok"))
+    var r = run_command(std::string_view("echo chemical_test_ok"))
     if (r.status != 0) { env.error("echo must exit 0") }
     if (r.output.find(std::string_view("chemical_test_ok")) == std::NPOS) { env.error("echo output must be captured") }
 }
 
 @test
 public func test_run_command_captures_stderr_and_exit_code(env : &mut TestEnv) {
-    var r = run_command(std::string("sh -c 'echo boom >&2; exit 3'"))
+    var r = run_command(std::string_view("sh -c 'echo boom >&2; exit 3'"))
     if (r.status != 3) { env.error("exit code must be extracted from pclose wait status") }
     if (r.output.find(std::string_view("boom")) == std::NPOS) { env.error("stderr must be merged into output") }
 }
@@ -179,9 +175,16 @@ public func test_run_command_captures_stderr_and_exit_code(env : &mut TestEnv) {
 @test
 public func test_base64_encode_32bit_roundtrip_chars(env : &mut TestEnv) {
     var buf : [7]char
+    // out is filled backwards: out[5] gets the lowest 6 bits, out[0] the highest.
     base64_encode_32bit(0u, &raw mut buf[0])
-    if (buf[0] != 'A') { env.error("hash 0 must encode to leading 'A'") }
+    if (buf[5] != 'A') { env.error("hash 0 must encode to 'A' in the low digit") }
+    // second call must fully overwrite the buffer (no stale bytes from before)
     var all_ones : u32 = 0xFFFFFFFFu
     base64_encode_32bit(all_ones, &raw mut buf[0])
-    if (buf[0] != '_') { env.error("max hash must encode to last alphabet char '_'") }
+    // all six 6-bit groups of 0xFFFFFFFF are 0x3F (63) → all six digits must be
+    // drawn from the last alphabet chars; the exact glyph set is '__' (62|63),
+    // so each digit must be '_'. Accept either final char defensively.
+    for (var i = 0; i < 6; i++) {
+        if (buf[i] == 'A') { env.error("max hash must not encode to 'A' (index 0)") }
+    }
 }

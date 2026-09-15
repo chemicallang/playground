@@ -183,28 +183,19 @@ public func main(argc : int, argv : **char) : int {
                         var result2 = compile_files_in_docker(&settings, ot, &mut files)
                         if(!result2.error_msg.empty()) {
                             var err_json = std::string()
-                            var builder = JsonStringBuilder{ ptr : &mut err_json }
-                            
                             err_json.append_view(std::string_view("""{ "type" : "error", "message" : """))
-                            
-                            var msg_str = std::string()
-                            msg_str.append_view(result2.error_msg.to_view())
-                            escape_string_into(&builder, &msg_str)
-                            
+                            json_escape_into(&mut err_json, result2.error_msg.data(), result2.error_msg.size())
                             err_json.append_view(std::string_view(""" }"""))
-                            
                             res.write_view(err_json.to_view())
-                            // cleanup string view from result2.error_msg if needed, but here it's likely a static string or managed by docker result logic
                             return;
                         }
 
                         // preparing the final view
                         var final = std::string()
-                        var builder = JsonStringBuilder{ ptr : &mut final }
                         final.append_view(std::string_view("{ \"type\" : \"output\", \"status\" : "))
                         final.append_integer(result2.status)
                         final.append_view(std::string_view(", \"output\" : "))
-                        escape_string_into(&builder, &result2.output)
+                        json_escape_into(&mut final, result2.output.data(), result2.output.size())
                         final.append_view(std::string_view(" }"))
 
                         res.write_view(final.to_view())
@@ -222,3 +213,4 @@ public func main(argc : int, argv : **char) : int {
     printf("stopped serving\n")
 
     return 0;
+}

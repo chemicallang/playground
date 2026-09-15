@@ -1,5 +1,5 @@
 // Endpoint tests: boot the real server with the same routes as
-// src/app/main.ch and hit them over loopback with the http client. Mirrors
+// app/main.ch and hit them over loopback with the http client. Mirrors
 // underlayer's tests/src/health_test.ch pattern: each test inlines its own
 // route registration because closures capture stack locals by reference
 // (|&var|) — that only works for variables in the caller's scope.
@@ -22,8 +22,9 @@ const PORT_TEST_SH : uint = 20708u
 const PORT_TEST_PS1 : uint = 20709u
 const PORT_SUBMIT : uint = 20710u
 const PORT_NOT_FOUND : uint = 20711u
+const PORT_HOME_BODY : uint = 20712u
 
-// Render the main page exactly like src/app/main.ch does.
+// Render the main page exactly like app/main.ch does.
 func render_home_html() : std::string {
     var page = HtmlPage()
     MainPage(&mut page)
@@ -32,7 +33,7 @@ func render_home_html() : std::string {
     return page.toString()
 }
 
-// Render the playground page exactly like src/app/main.ch does.
+// Render the playground page exactly like app/main.ch does.
 func render_pg_html() : std::string {
     var page = HtmlPage()
     PlaygroundPage(&mut page)
@@ -72,18 +73,18 @@ public func test_home_returns_200_html(env : &mut TestEnv) {
 public func test_home_body_contains_rendered_page(env : &mut TestEnv) {
     var completeMainPage = render_home_html()
     var cfg = server.ServerConfig()
-    cfg.addr = std::string("127.0.0.1:20701")
+    cfg.addr = std::string("127.0.0.1:20712")
     cfg.worker_count = 4u
     var srv = server.Server(cfg)
     srv.router.add("GET", "/", (|&completeMainPage|(req, res) => {
         res.set_header_view(std::string_view("Content-Type"), std::string_view("text/html; charset=utf-8"))
         res.write_view(completeMainPage.to_view())
     }))
-    srv.serve_async(PORT_HOME)
+    srv.serve_async(PORT_HOME_BODY)
     std::concurrent.sleep_ms(200u)
 
     var client = http::Client()
-    var res = client.get("http://127.0.0.1:20701/")
+    var res = client.get("http://127.0.0.1:20712/")
     if (res is Result.Err) { env.error("request failed"); srv.shutdown(); return }
     var Ok(resp) = res else unreachable
     var body_opt = resp.body.read_to_string()
@@ -146,9 +147,12 @@ public func test_head_root_returns_200(env : &mut TestEnv) {
 
 @test
 public func test_favicon_served_from_dev_assets(env : &mut TestEnv) {
-    // tests always run in def.debug, so the app resolves assets relative to
-    // the repo root — serve from the repo root working dir to match.
+    // resolve the dev asset the same way the app does, but tolerate the CWD:
+    // repo-root relative when launched from the root, src/ relative otherwise.
     var which_favicon = std::string_view("lang/compiled/playground/src/assets/Favicon.png")
+    if (!fs::exists("lang/compiled/playground/src/assets/Favicon.png")) {
+        which_favicon = std::string_view("src/assets/Favicon.png")
+    }
     var cfg = server.ServerConfig()
     cfg.addr = std::string("127.0.0.1:20704")
     cfg.worker_count = 4u
@@ -175,6 +179,9 @@ public func test_favicon_served_from_dev_assets(env : &mut TestEnv) {
 @test
 public func test_logo_served_from_dev_assets(env : &mut TestEnv) {
     var which_logo = std::string_view("lang/compiled/playground/src/assets/Logo.png")
+    if (!fs::exists("lang/compiled/playground/src/assets/Logo.png")) {
+        which_logo = std::string_view("src/assets/Logo.png")
+    }
     var cfg = server.ServerConfig()
     cfg.addr = std::string("127.0.0.1:20705")
     cfg.worker_count = 4u

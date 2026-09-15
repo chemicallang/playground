@@ -63,7 +63,7 @@ PLAYGROUND_TEST_PORT=8123 ./scripts/playground-build-test.sh
 ```
 chemical.mod          # module definition; app/test source switching lives here
 src/                  # shared code (pages, components, validation, docker, versions)
-src/app/main.ch       # server entry point — compiled only when NOT building with --test
+app/main.ch           # server entry point — compiled only when NOT building with --test
 tests/                # @test sources + tests/main.ch — compiled only with --test
 scripts/              # build/test/serve scripts (bash + PowerShell)
 ```

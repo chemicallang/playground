@@ -17,7 +17,7 @@ public struct CompileSettings {
     var benchmark : bool = false;
     var bm_files : bool = false;
     var bm_modules : bool = false;
-    var version : int = V_55;
+    var version : int = V_511;
 }
 
 func write_entrypoint_script_new(settings : &CompileSettings, outputType : OutputType, host_dir : std::string) : std::Result<UnitTy, fs::FsError> {

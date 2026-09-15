@@ -17,7 +17,7 @@ public func test_compile_settings_defaults(env : &mut TestEnv) {
     if (s.benchmark) { env.error("benchmark must default to false") }
     if (s.bm_files) { env.error("bm_files must default to false") }
     if (s.bm_modules) { env.error("bm_modules must default to false") }
-    if (s.version != V_55) { env.error("version must default to the newest supported version") }
+    if (s.version != V_511) { env.error("version must default to the newest supported version") }
     if (!s.mode.empty()) { env.error("mode must default to empty") }
 }
 

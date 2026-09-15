@@ -10,13 +10,13 @@ public func test_supported_versions_count(env : &mut TestEnv) {
 
 @test
 public func test_default_is_newest(env : &mut TestEnv) {
-    if (V_DEFAULT != V_55) { env.error("default version must be the newest (V_55)") }
+    if (V_DEFAULT != V_511) { env.error("default version must be the newest (V_511)") }
 }
 
 @test
 public func test_versions_descending(env : &mut TestEnv) {
-    if (!(V_55 > V_54 && V_54 > V_53)) { env.error("supported versions must be strictly descending") }
-    if (SUPPORTED_VERSIONS[0] != V_55 || SUPPORTED_VERSIONS[1] != V_54 || SUPPORTED_VERSIONS[2] != V_53) {
+    if (!(V_511 > V_510 && V_510 > V_59)) { env.error("supported versions must be strictly descending") }
+    if (SUPPORTED_VERSIONS[0] != V_511 || SUPPORTED_VERSIONS[1] != V_510 || SUPPORTED_VERSIONS[2] != V_59) {
         env.error("SUPPORTED_VERSIONS must list versions newest-first")
     }
 }
@@ -24,9 +24,9 @@ public func test_versions_descending(env : &mut TestEnv) {
 @test
 public func test_version_from_hash_roundtrip(env : &mut TestEnv) {
     // the hashes are computed from the same strings the compiler switches on
-    if (version_from_hash(V55_HASH) != V_55) { env.error("V55_HASH must map back to V_55") }
-    if (version_from_hash(V54_HASH) != V_54) { env.error("V54_HASH must map back to V_54") }
-    if (version_from_hash(V53_HASH) != V_53) { env.error("V53_HASH must map back to V_53") }
+    if (version_from_hash(V511_HASH) != V_511) { env.error("V511_HASH must map back to V_511") }
+    if (version_from_hash(V510_HASH) != V_510) { env.error("V510_HASH must map back to V_510") }
+    if (version_from_hash(V59_HASH) != V_59) { env.error("V59_HASH must map back to V_59") }
 }
 
 @test
@@ -37,28 +37,28 @@ public func test_version_from_hash_unknown_falls_back_to_default(env : &mut Test
 
 @test
 public func test_docker_tag_suffix(env : &mut TestEnv) {
-    var tag55 = docker_tag_suffix(V_55)
-    if (!tag55.equals(std::string_view("v0.5.5-ubuntu"))) { env.error("wrong tag for V_55") }
-    var tag54 = docker_tag_suffix(V_54)
-    if (!tag54.equals(std::string_view("v0.5.4-ubuntu"))) { env.error("wrong tag for V_54") }
-    var tag53 = docker_tag_suffix(V_53)
-    if (!tag53.equals(std::string_view("v0.5.3-ubuntu"))) { env.error("wrong tag for V_53") }
+    var tag511 = docker_tag_suffix(V_511)
+    if (!tag511.equals(std::string_view("v0.5.11-ubuntu"))) { env.error("wrong tag for V_511") }
+    var tag510 = docker_tag_suffix(V_510)
+    if (!tag510.equals(std::string_view("v0.5.10-ubuntu"))) { env.error("wrong tag for V_510") }
+    var tag59 = docker_tag_suffix(V_59)
+    if (!tag59.equals(std::string_view("v0.5.9-ubuntu"))) { env.error("wrong tag for V_59") }
 }
 
 @test
 public func test_docker_tag_suffix_fallback(env : &mut TestEnv) {
     var tag = docker_tag_suffix(1)
-    if (!tag.equals(std::string_view("v0.5.3-ubuntu"))) { env.error("unknown version must fall back to oldest tag") }
+    if (!tag.equals(std::string_view("v0.5.9-ubuntu"))) { env.error("unknown version must fall back to oldest tag") }
 }
 
 @test
 public func test_version_label(env : &mut TestEnv) {
-    var l55 = version_label(V_55)
-    if (!l55.equals(std::string_view("v0.5.5"))) { env.error("wrong label for V_55") }
-    var l54 = version_label(V_54)
-    if (!l54.equals(std::string_view("v0.5.4"))) { env.error("wrong label for V_54") }
-    var l53 = version_label(V_53)
-    if (!l53.equals(std::string_view("v0.5.3"))) { env.error("wrong label for V_53") }
+    var l511 = version_label(V_511)
+    if (!l511.equals(std::string_view("v0.5.11"))) { env.error("wrong label for V_511") }
+    var l510 = version_label(V_510)
+    if (!l510.equals(std::string_view("v0.5.10"))) { env.error("wrong label for V_510") }
+    var l59 = version_label(V_59)
+    if (!l59.equals(std::string_view("v0.5.9"))) { env.error("wrong label for V_59") }
 }
 
 @test
@@ -66,9 +66,9 @@ public func test_version_options_html(env : &mut TestEnv) {
     var html = version_options_html()
     var view = html.to_view()
     // every supported version appears once as an <option>
-    if (view.find(std::string_view("<option value=\"55\" selected>")) == std::NPOS) { env.error("default version must be selected in options html") }
-    if (view.find(std::string_view("<option value=\"54\">")) == std::NPOS) { env.error("V_54 option missing") }
-    if (view.find(std::string_view("<option value=\"53\">")) == std::NPOS) { env.error("V_53 option missing") }
+    if (view.find(std::string_view("<option value=\"511\" selected>")) == std::NPOS) { env.error("default version must be selected in options html") }
+    if (view.find(std::string_view("<option value=\"510\">")) == std::NPOS) { env.error("V_510 option missing") }
+    if (view.find(std::string_view("<option value=\"59\">")) == std::NPOS) { env.error("V_59 option missing") }
     if (view.find(std::string_view("</option>")) == std::NPOS) { env.error("options html missing closing tags") }
 }
 

@@ -209,6 +209,14 @@ func MainPage(page : &mut HtmlPage) {
                 .pre-alpha-note a { color: var(--text-secondary); text-decoration: underline; text-underline-offset: 3px; }
                 .pre-alpha-note a:hover { color: var(--accent); }
 
+                .latest-tag {
+                    margin-top: -8px; margin-bottom: 28px;
+                    font-family: var(--font-mono); font-size: 0.82rem;
+                    color: var(--text-dim); letter-spacing: 0.02em;
+                }
+                .latest-tag a { color: var(--accent); text-decoration: none; }
+                .latest-tag a:hover { text-decoration: underline; text-underline-offset: 3px; }
+
                 /* --- RESPONSIVE --- */
                 @media (max-width: 980px) {
                     .hero { padding: 72px 0 56px; }
@@ -351,27 +359,34 @@ func MainPage(page : &mut HtmlPage) {
                         <div class="kicker">Get Chemical</div>
                         <h2 class="section-title">Pick your platform.</h2>
                     </div>
+                    <p class="latest-tag">Latest release: <a href="https://github.com/chemicallang/chemical/releases/tag/v0.5.11" target="_blank">v0.5.11</a></p>
                     <div class="download-grid">
                         <div class="card os-card">
                             <div class="os-head"><h3>Windows</h3><span class="arch">x64 / arm64</span></div>
-                            <a class="dl" href="https://github.com/chemicallang/chemical/releases/download/v0.0.32/windows-x64.zip"><span>x64 (LLVM)</span><span class="arch">zip</span></a>
-                            <a class="dl" href="https://github.com/chemicallang/chemical/releases/download/v0.0.32/windows-x64-tcc.zip"><span>x64 (TinyCC)</span><span class="arch">zip</span></a>
-                            <a class="dl" href="https://github.com/chemicallang/chemical/releases/download/v0.0.32/windows-arm64.zip"><span>ARM64 (LLVM)</span><span class="arch">zip</span></a>
-                            <a class="dl" href="https://github.com/chemicallang/chemical/releases/download/v0.0.32/windows-arm64-tcc.zip"><span>ARM64 (TinyCC)</span><span class="arch">zip</span></a>
+                            <a class="dl" href="https://github.com/chemicallang/chemical/releases/download/v0.5.11/windows-x64.zip"><span>x64 (LLVM)</span><span class="arch">zip</span></a>
+                            <a class="dl" href="https://github.com/chemicallang/chemical/releases/download/v0.5.11/windows-x64-tcc.zip"><span>x64 (TinyCC)</span><span class="arch">zip</span></a>
+                            <a class="dl" href="https://github.com/chemicallang/chemical/releases/download/v0.5.11/windows-x64-lsp.zip"><span>x64 (LSP)</span><span class="arch">zip</span></a>
+                            <a class="dl" href="https://github.com/chemicallang/chemical/releases/download/v0.5.11/windows-arm64.zip"><span>ARM64 (LLVM)</span><span class="arch">zip</span></a>
+                            <a class="dl" href="https://github.com/chemicallang/chemical/releases/download/v0.5.11/windows-arm64-tcc.zip"><span>ARM64 (TinyCC)</span><span class="arch">zip</span></a>
+                            <a class="dl" href="https://github.com/chemicallang/chemical/releases/download/v0.5.11/windows-arm64-lsp.zip"><span>ARM64 (LSP)</span><span class="arch">zip</span></a>
                         </div>
                         <div class="card os-card">
                             <div class="os-head"><h3>Linux</h3><span class="arch">x64 / arm64</span></div>
-                            <a class="dl" href="https://github.com/chemicallang/chemical/releases/download/v0.0.32/linux-x64.zip"><span>x64 (LLVM)</span><span class="arch">zip</span></a>
-                            <a class="dl" href="https://github.com/chemicallang/chemical/releases/download/v0.0.32/linux-x64-tcc.zip"><span>x64 (TinyCC)</span><span class="arch">zip</span></a>
-                            <a class="dl" href="https://github.com/chemicallang/chemical/releases/download/v0.0.32/linux-arm64.zip"><span>ARM64 (LLVM)</span><span class="arch">zip</span></a>
-                            <a class="dl" href="https://github.com/chemicallang/chemical/releases/download/v0.0.32/linux-arm64-tcc.zip"><span>ARM64 (TinyCC)</span><span class="arch">zip</span></a>
+                            <a class="dl" href="https://github.com/chemicallang/chemical/releases/download/v0.5.11/linux-x64.zip"><span>x64 (LLVM)</span><span class="arch">zip</span></a>
+                            <a class="dl" href="https://github.com/chemicallang/chemical/releases/download/v0.5.11/linux-x64-tcc.zip"><span>x64 (TinyCC)</span><span class="arch">zip</span></a>
+                            <a class="dl" href="https://github.com/chemicallang/chemical/releases/download/v0.5.11/linux-x64-lsp.zip"><span>x64 (LSP)</span><span class="arch">zip</span></a>
+                            <a class="dl" href="https://github.com/chemicallang/chemical/releases/download/v0.5.11/linux-arm64.zip"><span>ARM64 (LLVM)</span><span class="arch">zip</span></a>
+                            <a class="dl" href="https://github.com/chemicallang/chemical/releases/download/v0.5.11/linux-arm64-tcc.zip"><span>ARM64 (TinyCC)</span><span class="arch">zip</span></a>
+                            <a class="dl" href="https://github.com/chemicallang/chemical/releases/download/v0.5.11/linux-arm64-lsp.zip"><span>ARM64 (LSP)</span><span class="arch">zip</span></a>
                         </div>
                         <div class="card os-card">
                             <div class="os-head"><h3>macOS</h3><span class="arch">Intel / Silicon</span></div>
-                            <a class="dl" href="https://github.com/chemicallang/chemical/releases/download/v0.0.32/macos-x64.zip"><span>Intel (LLVM)</span><span class="arch">zip</span></a>
-                            <a class="dl" href="https://github.com/chemicallang/chemical/releases/download/v0.0.32/macos-x64-tcc.zip"><span>Intel (TinyCC)</span><span class="arch">zip</span></a>
-                            <a class="dl" href="https://github.com/chemicallang/chemical/releases/download/v0.0.32/macos-arm64.zip"><span>Apple Silicon (LLVM)</span><span class="arch">zip</span></a>
-                            <a class="dl" href="https://github.com/chemicallang/chemical/releases/download/v0.0.32/macos-arm64-tcc.zip"><span>Apple Silicon (TinyCC)</span><span class="arch">zip</span></a>
+                            <a class="dl" href="https://github.com/chemicallang/chemical/releases/download/v0.5.11/macos-x64.zip"><span>Intel (LLVM)</span><span class="arch">zip</span></a>
+                            <a class="dl" href="https://github.com/chemicallang/chemical/releases/download/v0.5.11/macos-x64-tcc.zip"><span>Intel (TinyCC)</span><span class="arch">zip</span></a>
+                            <a class="dl" href="https://github.com/chemicallang/chemical/releases/download/v0.5.11/macos-x64-lsp.zip"><span>Intel (LSP)</span><span class="arch">zip</span></a>
+                            <a class="dl" href="https://github.com/chemicallang/chemical/releases/download/v0.5.11/macos-arm64.zip"><span>Apple Silicon (LLVM)</span><span class="arch">zip</span></a>
+                            <a class="dl" href="https://github.com/chemicallang/chemical/releases/download/v0.5.11/macos-arm64-tcc.zip"><span>Apple Silicon (TinyCC)</span><span class="arch">zip</span></a>
+                            <a class="dl" href="https://github.com/chemicallang/chemical/releases/download/v0.5.11/macos-arm64-lsp.zip"><span>Apple Silicon (LSP)</span><span class="arch">zip</span></a>
                         </div>
                     </div>
                     <p class="pre-alpha-note">Chemical is in <strong style="color:var(--text-secondary);">pre-alpha</strong>. More builds on <a href="https://github.com/chemicallang/chemical/releases" target="_blank">GitHub Releases</a>.</p>

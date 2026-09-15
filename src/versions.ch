@@ -1,39 +1,39 @@
 // Supported compiler version constants — single source of truth
 // Keep only the latest 3 versions; update when cutting a new release
 
-public comptime const V_55 : int = 55;
-public comptime const V_54 : int = 54;
-public comptime const V_53 : int = 53;
-public comptime const V_DEFAULT : int = V_55;
+public comptime const V_511 : int = 511;
+public comptime const V_510 : int = 510;
+public comptime const V_59 : int = 59;
+public comptime const V_DEFAULT : int = V_511;
 
 public const SUPPORTED_COUNT : int = 3;
-public const SUPPORTED_VERSIONS : [3]int = [V_55, V_54, V_53];
+public const SUPPORTED_VERSIONS : [3]int = [V_511, V_510, V_59];
 
 // FNV1a hashes for string-based version lookup (used in main.ch switch cases)
-public const V55_HASH : uint = comptime_fnv1_hash("55");
-public const V54_HASH : uint = comptime_fnv1_hash("54");
-public const V53_HASH : uint = comptime_fnv1_hash("53");
+public const V511_HASH : uint = comptime_fnv1_hash("511");
+public const V510_HASH : uint = comptime_fnv1_hash("510");
+public const V59_HASH : uint = comptime_fnv1_hash("59");
 
 // Map an FNV1a hash to a version number
 public func version_from_hash(hash : uint) : int {
-    if (hash == V55_HASH) { return V_55 }
-    else if (hash == V54_HASH) { return V_54 }
-    else if (hash == V53_HASH) { return V_53 }
+    if (hash == V511_HASH) { return V_511 }
+    else if (hash == V510_HASH) { return V_510 }
+    else if (hash == V59_HASH) { return V_59 }
     else { return V_DEFAULT }
 }
 
 // Docker image tag suffix from version number
 public func docker_tag_suffix(v : int) : std::string_view {
-    if (v == V_55) { return std::string_view("v0.5.5-ubuntu") }
-    else if (v == V_54) { return std::string_view("v0.5.4-ubuntu") }
-    else { return std::string_view("v0.5.3-ubuntu") }
+    if (v == V_511) { return std::string_view("v0.5.11-ubuntu") }
+    else if (v == V_510) { return std::string_view("v0.5.10-ubuntu") }
+    else { return std::string_view("v0.5.9-ubuntu") }
 }
 
 // Display label for version dropdown
 public func version_label(v : int) : std::string_view {
-    if (v == V_55) { return std::string_view("v0.5.5") }
-    else if (v == V_54) { return std::string_view("v0.5.4") }
-    else { return std::string_view("v0.5.3") }
+    if (v == V_511) { return std::string_view("v0.5.11") }
+    else if (v == V_510) { return std::string_view("v0.5.10") }
+    else { return std::string_view("v0.5.9") }
 }
 
 // Generate version <option> HTML for the settings dropdown

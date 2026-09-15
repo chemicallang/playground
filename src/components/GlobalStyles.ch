@@ -1,6 +1,8 @@
 func GlobalStyles(page : &mut HtmlPage) {
     #html {
         <head>
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <meta name="theme-color" content="#0A0A0C">
             <link rel="preconnect" href="https://fonts.googleapis.com">
             <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
             <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -65,6 +67,8 @@ func GlobalStyles(page : &mut HtmlPage) {
               font-size: 16px;
               -webkit-font-smoothing: antialiased;
               text-rendering: optimizeLegibility;
+              -webkit-text-size-adjust: 100%;
+              text-size-adjust: 100%;
               transition: background-color 0.35s var(--ease), color 0.35s var(--ease);
               overflow-x: hidden;
             }
@@ -72,6 +76,14 @@ func GlobalStyles(page : &mut HtmlPage) {
             img { max-width: 100%; display: block; }
             button { font-family: inherit; }
             ::selection { background: var(--accent); color: var(--accent-ink); }
+
+            /* keyboard navigation: visible focus ring, mouse clicks unaffected */
+            :focus { outline: none; }
+            :focus-visible {
+              outline: 2px solid var(--accent);
+              outline-offset: 2px;
+              border-radius: 4px;
+            }
 
             .container { width: 100%; max-width: var(--max-width); margin: 0 auto; padding: 0 32px; }
 
@@ -249,6 +261,18 @@ func GlobalStyles(page : &mut HtmlPage) {
             @media (max-width: 640px) {
               .nav-links .nav-link { display: none; }
               .footer-grid { grid-template-columns: 1fr; }
+              .btn { height: 44px; }   /* comfortable touch targets */
+              .nav { height: 58px; }
+            }
+
+            /* respect users who prefer less motion */
+            @media (prefers-reduced-motion: reduce) {
+              *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+                scroll-behavior: auto !important;
+              }
             }
         """}</style>
     }

@@ -83,6 +83,8 @@ func editor_toolbar(page : &mut HtmlPage) : *char {
         display : flex;
         flex-direction : row;
         align-items : center;
+        flex-wrap : wrap;
+        row-gap : 4px;
         gap : 2px;
         padding : 6px 8px;
         background-color : var(--bg-elevated);
@@ -174,6 +176,11 @@ func PlaygroundPage(page : &mut HtmlPage) {
             @keyframes toast-in {
                 from { opacity: 0; transform: translateX(-50%) translateY(-8px); }
                 to { opacity: 1; transform: translateX(-50%) translateY(0); }
+            }
+
+            /* small screens: drop decorative pane labels, toolbars wrap on their own */
+            @media (max-width: 900px) {
+                .pane-title { display: none; }
             }
         """}</style>
         <script>{"""
@@ -622,9 +629,20 @@ source "main.ch"
                     @media (max-width: 768px) {
                         ."""}{textarea_container(page)}{""" {
                             flex-direction: column;
+                            padding: 12px 12px 16px;
+                            gap: 12px;
                         }
                         ."""}{editor_container(page)}{""" {
-                            min-height: 50vh;
+                            min-height: 62vh;
+                        }
+                    }
+                    @media (max-width: 480px) {
+                        ."""}{editor_container(page)}{""" {
+                            min-height: 55vh;
+                        }
+                        ."""}{editor_tab_button(page)}{""" {
+                            padding: 6px 8px;
+                            font-size: 11px;
                         }
                     }
                 """}</style>
@@ -693,6 +711,11 @@ source "main.ch"
                   border-radius:10px;
                   box-shadow:0 32px 80px -24px rgba(0,0,0,0.7);
                   padding:24px;
+                }
+                @media (max-width: 480px) {
+                  .modal-card { padding:16px; margin:4vh auto; }
+                  .modal-body label, .modal-body .opt-row { padding: 8px 10px; }
+                  .modal-body .opt-name { font-size: 11.5px; }
                 }
                 .modal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px; }
                 .modal-header h3 { font-size: 1.05rem; font-weight: 600; }

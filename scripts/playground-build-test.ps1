@@ -4,7 +4,7 @@
 # This script ALWAYS exits cleanly — never blocks.
 
 param(
-    [int]$Port = 8099
+    [int]$Port = 8080
 )
 
 $ErrorActionPreference = "Stop"
@@ -76,7 +76,7 @@ Write-Host "  Using exe: $exe"
 
 # 3. Start server (repo root so dev asset paths resolve)
 Write-Host "[2/3] Starting server on port $Port..."
-$serverProc = Start-Process -FilePath $exe -WorkingDirectory $root -ArgumentList "-p", "$Port" -PassThru -NoNewWindow
+$serverProc = Start-Process -FilePath $exe -WorkingDirectory $root  -PassThru -NoNewWindow
 try {
     $ready = $false
     for ($i = 0; $i -lt 50; $i++) {

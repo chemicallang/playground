@@ -1,6 +1,5 @@
 func Header(page : &mut HtmlPage) {
     #html {
-        <!-- Header & Nav -->
         <header>
           <script>{"""
             function toggleTheme() {
@@ -15,23 +14,25 @@ func Header(page : &mut HtmlPage) {
             }
           """}</script>
           <div class="container nav">
-            <a href="/" class="logo"><img src="/Logo.png" alt="Logo" height="48px"/><span>Chemical</span></a>
+            <a href="/" class="logo"><img src="/Logo.png" alt="Chemical logo"/><span>Chemical</span></a>
             <nav class="nav-links">
-              <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Theme">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <circle cx="12" cy="12" r="5"></circle>
-                      <line x1="12" y1="1" x2="12" y2="3"></line>
-                      <line x1="12" y1="21" x2="12" y2="23"></line>
-                      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                      <line x1="1" y1="12" x2="3" y2="12"></line>
-                      <line x1="21" y1="12" x2="23" y2="12"></line>
-                      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+              <a href="https://docs.chemicallang.com" target="_blank" class="nav-link">Docs</a>
+              <a href="https://github.com/chemicallang/chemical" target="_blank" class="nav-link">GitHub</a>
+              <a href="https://chemicallang.github.io/components" target="_blank" class="nav-link">Components</a>
+              <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme" aria-label="Toggle theme">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="12" cy="12" r="4.5"></circle>
+                      <line x1="12" y1="2" x2="12" y2="4.5"></line>
+                      <line x1="12" y1="19.5" x2="12" y2="22"></line>
+                      <line x1="2" y1="12" x2="4.5" y2="12"></line>
+                      <line x1="19.5" y1="12" x2="22" y2="12"></line>
+                      <line x1="4.93" y1="4.93" x2="6.7" y2="6.7"></line>
+                      <line x1="17.3" y1="17.3" x2="19.07" y2="19.07"></line>
+                      <line x1="4.93" y1="19.07" x2="6.7" y2="17.3"></line>
+                      <line x1="17.3" y1="6.7" x2="19.07" y2="4.93"></line>
                   </svg>
               </button>
-              <a href="https://docs.chemicallang.com" target="_blank"><button class="btn btn-primary">Get Started</button></a>
-              <a href="/playground"><button class="btn btn-primary">Playground</button></a>
+              <a href="/playground"><button class="btn btn-primary btn-nav">Playground</button></a>
             </nav>
           </div>
         </header>

@@ -1,30 +1,41 @@
 func error_box_container(page : &mut HtmlPage) : *char {
     return #css {
-        width : 100%;
-        padding : 1em;
+        position : fixed;
+        top : 76px;
+        left : 50%;
+        transform : translateX(-50%);
+        width : min(560px, calc(100vw - 40px));
+        z-index : 3000;
         display : none;
+        animation : toast-in 0.25s cubic-bezier(0.22, 1, 0.36, 1);
     }
 }
 
 func error_msg_container(page : &mut HtmlPage) : *char {
     return #css {
         width : 100%;
-        padding : 1em;
-        border-radius : 4px;
-        background-color : rgba(255, 0, 0, 0.1);
-        border : 1px solid rgba(255, 0, 0, 0.3);
-        color : #fca5a5;
+        padding : 12px 16px;
+        border-radius : 6px;
+        background-color : var(--bg-elevated);
+        border : 1px solid var(--err);
+        color : var(--err);
+        font-family : var(--font-mono);
+        font-size : 13px;
+        line-height : 1.5;
+        box-shadow : 0 12px 32px -12px rgba(0, 0, 0, 0.6);
     }
 }
 
 func textarea_container(page : &mut HtmlPage) : *char {
     return #css {
         display : flex;
-        flex-direction:row;
+        flex-direction : row;
         width : 100%;
-        padding : 1em;
-        gap : 1em;
-        flex-wrap: wrap;
+        max-width : 1600px;
+        margin : 0 auto;
+        padding : 16px 20px 20px;
+        gap : 16px;
+        flex-wrap : nowrap;
     }
 }
 
@@ -32,13 +43,14 @@ func editor_area(page : &mut HtmlPage) : *char {
     return #css {
         width : 100%;
         height : 100%;
-        min-height : 80vh;
-        background-color : var(--surface);
+        min-height : 72vh;
+        background-color : var(--bg-inset);
         outline : 0;
-        border : 1px solid var(--border-color);
+        border : 1px solid var(--line);
+        border-top : 0;
         border-bottom-left-radius : 8px;
         border-bottom-right-radius : 8px;
-        overflow: hidden;
+        overflow : hidden;
     }
 }
 
@@ -46,13 +58,14 @@ func display_editor(page : &mut HtmlPage) : *char {
     return #css {
         width : 100%;
         height : 100%;
-        min-height : 80vh;
-        background-color : var(--bg);
+        min-height : 72vh;
+        background-color : var(--bg-inset);
         outline : 0;
-        border : 1px solid var(--border-color);
+        border : 1px solid var(--line);
+        border-top : 0;
         border-bottom-left-radius : 8px;
         border-bottom-right-radius : 8px;
-        overflow: hidden;
+        overflow : hidden;
     }
 }
 
@@ -69,43 +82,50 @@ func editor_toolbar(page : &mut HtmlPage) : *char {
     return #css {
         display : flex;
         flex-direction : row;
-        gap : 0.5em;
+        align-items : center;
+        gap : 2px;
+        padding : 6px 8px;
+        background-color : var(--bg-elevated);
+        border : 1px solid var(--line);
+        border-radius : 8px 8px 0 0;
     }
 }
 
 func editor_tab_button(page : &mut HtmlPage) : *char {
     return #css {
-        padding : 10px 18px;
+        padding : 7px 12px;
         background-color : transparent;
-        border-top-left-radius : 6px;
-        border-top-right-radius : 6px;
+        border-radius : 5px;
         border : 1px solid transparent;
-        color : var(--text-muted);
-        cursor: pointer;
-        font-size: 13px;
-        font-weight: 500;
-        transition: all 0.2s;
+        color : var(--text-dim);
+        cursor : pointer;
+        font-family : var(--font-mono);
+        font-size : 12px;
+        font-weight : 500;
+        transition : color 0.15s, background-color 0.15s;
     }
 }
 
 func tab_select_opt(page : &mut HtmlPage) : *char {
     return #css {
-        padding : 8px 12px;
-        background-color : var(--surface);
+        padding : 7px 12px;
+        background-color : var(--bg-elevated);
         color : var(--text);
     }
 }
 
 func editor_tab_button_primary(page : &mut HtmlPage) : *char {
     return #css {
-        padding : 8px 16px;
-        background-color : var(--accent-primary);
-        border-radius : 4px;
+        padding : 7px 18px;
+        background-color : var(--accent);
+        border-radius : 5px;
         border : 0;
-        color : var(--accent-contrast);
-        font-weight: 600;
-        cursor: pointer;
-        font-size: 13px;
+        color : var(--accent-ink);
+        font-weight : 600;
+        cursor : pointer;
+        font-family : var(--font-sans);
+        font-size : 12.5px;
+        transition : filter 0.15s;
     }
 }
 
@@ -117,13 +137,43 @@ func PlaygroundPage(page : &mut HtmlPage) {
     #html {
         <style>{"""
             button.active {
-                background-color : var(--surface);
-                color: var(--text);
-                border: 1px solid var(--border-color);
-                border-bottom: 1px solid var(--surface);
-                margin-bottom: -1px;
-                z-index: 10;
-                font-weight: 600;
+                background-color : var(--accent-dim);
+                color: var(--accent);
+            }
+            
+            /* pane headers */
+            .pane-title {
+                font-family: var(--font-mono);
+                font-size: 0.68rem;
+                letter-spacing: 0.12em;
+                text-transform: uppercase;
+                color: var(--text-dim);
+                margin-right: 10px;
+                padding-left: 6px;
+                user-select: none;
+            }
+            .toolbar-sep {
+                width: 1px;
+                height: 18px;
+                background: var(--line-strong);
+                margin: 0 8px;
+                flex-shrink: 0;
+            }
+            #submit-btn:hover { filter: brightness(1.08); }
+            #submit-btn:disabled { opacity: 0.6; cursor: default; }
+            .spinner {
+                display: inline-block;
+                width: 12px; height: 12px;
+                border: 2px solid var(--accent-ink);
+                border-top-color: transparent;
+                border-radius: 50%;
+                animation: spin 0.7s linear infinite;
+                vertical-align: -2px;
+            }
+            @keyframes spin { to { transform: rotate(360deg); } }
+            @keyframes toast-in {
+                from { opacity: 0; transform: translateX(-50%) translateY(-8px); }
+                to { opacity: 1; transform: translateX(-50%) translateY(0); }
             }
         """}</style>
         <script>{"""
@@ -500,11 +550,17 @@ source "main.ch"
                                 { background: bg.replace('#', '') }
                             ],
                             colors: {
-                                'editor.background': isDark ? '#020617' : '#F8FAFC',
-                                'editor.foreground': text,
-                                'editor.lineHighlightBackground': isDark ? '#1E293B' : '#F1F5F9',
-                                'editor.selectionBackground': isDark ? '#334155' : '#E2E8F0',
-                                'editor.inactiveSelectionBackground': isDark ? '#1E293B' : '#F1F5F9',
+                                'editor.background': isDark ? '#060608' : '#F1F1EC',
+                                'editor.foreground': isDark ? '#E8E8EC' : '#17171C',
+                                'editor.lineHighlightBackground': isDark ? '#101014' : '#E9E9E2',
+                                'editor.selectionBackground': isDark ? '#2A2A32' : '#D9D9CE',
+                                'editor.inactiveSelectionBackground': isDark ? '#1D1D23' : '#E4E4DD',
+                                'editorLineNumber.foreground': isDark ? '#3A3A44' : '#B8B8AE',
+                                'editorLineNumber.activeForeground': isDark ? '#4DA3FF' : '#1D5FBF',
+                                'editorCursor.foreground': isDark ? '#4DA3FF' : '#1D5FBF',
+                                'editorIndentGuide.background1': isDark ? '#1D1D23' : '#E4E4DD',
+                                'editorWidget.background': isDark ? '#101014' : '#FFFFFF',
+                                'editorWidget.border': isDark ? '#2A2A32' : '#D4D4CB',
                             }
                         });
                         monaco.editor.setTheme('chemical-theme');
@@ -519,8 +575,11 @@ source "main.ch"
                         automaticLayout: true,
                         minimap: { enabled: false },
                         scrollBeyondLastLine: false,
-                        fontSize: 14,
-                        fontFamily: "'Menlo', 'Monaco', 'Courier New', monospace"
+                        fontSize: 13.5,
+                        fontFamily: "'IBM Plex Mono', ui-monospace, 'Menlo', monospace",
+                        renderLineHighlight: 'line',
+                        smoothScrolling: true,
+                        padding: { top: 14, bottom: 14 }
                     });
 
                     outputEditor = monaco.editor.create(outputContainer, {
@@ -531,8 +590,11 @@ source "main.ch"
                         automaticLayout: true,
                         minimap: { enabled: false },
                         scrollBeyondLastLine: false,
-                        fontSize: 14,
-                        fontFamily: "'Menlo', 'Monaco', 'Courier New', monospace"
+                        fontSize: 13.5,
+                        fontFamily: "'IBM Plex Mono', ui-monospace, 'Menlo', monospace",
+                        renderLineHighlight: 'none',
+                        smoothScrolling: true,
+                        padding: { top: 14, bottom: 14 }
                     });
 
                     // Observer for theme changes
@@ -568,7 +630,8 @@ source "main.ch"
                 """}</style>
                 <div class={editor_container(page)}>
                     <div class={editor_toolbar(page)}>
-                        <select id="examples" class={editor_tab_button(page)}>
+                        <span class="pane-title">Editor</span>
+                        <select id="examples" class={editor_tab_button(page)} title="Load an example">
                             <option value="1" class={tab_select_opt(page)}>Most Basic</option>
                             <option value="2" class={tab_select_opt(page)}>String List</option>
                             <option value="3" class={tab_select_opt(page)}>Expressive Strings</option>
@@ -588,23 +651,25 @@ source "main.ch"
                             <option value="17" class={tab_select_opt(page)}>Encoding</option>
                             <option value="18" class={tab_select_opt(page)}>DocGen</option>
                         </select>
+                        <span class="toolbar-sep"></span>
                         <button id="main-file-btn" class={editor_tab_button(page)}>main.ch</button>
                         <button id="mod-file-btn" class={editor_tab_button(page)}>chemical.mod</button>
-                        <button id="file-adder-btn" class={editor_tab_button(page)}>+</button>
+                        <button id="file-adder-btn" class={editor_tab_button(page)} title="Add file">+</button>
                     </div>
                     <div id="editor-container" class={editor_area(page)}></div>
                 </div>
                 <div class={editor_container(page)}>
                     <div class={editor_toolbar(page)}>
+                        <span class="pane-title">Output</span>
                         <button id="output-type-output-btn" class={editor_tab_button(page)}>Output</button>
-                        <button id="output-type-compiler-btn" class={editor_tab_button(page)}>CompilerOutput</button>
+                        <button id="output-type-compiler-btn" class={editor_tab_button(page)}>Compiler</button>
                         <button id="output-type-ir-btn" class={editor_tab_button(page)}>LLVM IR</button>
-                        <button id="output-type-asm-btn" class={editor_tab_button(page)}>Assembly</button>
-                        <button id="output-type-c-btn" class={editor_tab_button(page)}>C Translation</button>
+                        <button id="output-type-asm-btn" class={editor_tab_button(page)}>ASM</button>
+                        <button id="output-type-c-btn" class={editor_tab_button(page)}>C</button>
                         <button id="output-type-webview-btn" class={editor_tab_button(page)} style="display:none">WebView</button>
-                        <div class={editor_toolbar(page)} style="flex-grow:1;justify-content:end;">
+                        <div class={editor_toolbar(page)} style="flex-grow:1;justify-content:end;background:transparent;border:none;padding:0;">
                             <button class={editor_tab_button(page)} id="settings-btn">Settings</button>
-                            <button id="submit-btn" class={editor_tab_button_primary(page)}>Submit</button>
+                            <button id="submit-btn" class={editor_tab_button_primary(page)}>Run &#8594;</button>
                         </div>
                     </div>
                     <div id="output-container" class={display_editor(page)}></div>
@@ -612,87 +677,107 @@ source "main.ch"
                 </div>
             </div>
 
-            <!-- Settings modal (paste once in the page) -->
+            <!-- Settings modal -->
             <style>{"""
                 #settings-modal.modal-hidden { display:none; }
                 #settings-modal { position:fixed; inset:0; z-index:2000; }
-                .modal-backdrop { position:absolute; inset:0; background:rgba(0,0,0,0.45); }
+                .modal-backdrop { position:absolute; inset:0; background:rgba(0,0,0,0.6); backdrop-filter: blur(4px); }
                 .modal-card {
                   position:relative;
-                  width:min(720px, 95%);
-                  margin:6% auto;
-                  background:var(--surface);
-                  border: 1px solid var(--border-color);
-                  border-radius:8px;
-                  box-shadow:0 8px 30px rgba(0,0,0,0.2);
-                  padding:12px;
+                  width:min(560px, calc(100% - 32px));
+                  margin:7vh auto;
+                  max-height:82vh;
+                  overflow-y:auto;
+                  background:var(--bg-elevated);
+                  border: 1px solid var(--line-strong);
+                  border-radius:10px;
+                  box-shadow:0 32px 80px -24px rgba(0,0,0,0.7);
+                  padding:24px;
                 }
-                .modal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom: 1rem; }
-                .modal-body { display:flex; flex-direction:column; gap:12px; padding:8px 0; }
-                .modal-footer { display:flex; justify-content:flex-end; gap:12px; padding-top:16px; border-top: 1px solid var(--border-color); margin-top: 16px; }
-                .modal-body label { display:flex; align-items:center; gap:12px; font-size:15px; color: var(--text); cursor: pointer; }
-                .modal-body input[type="checkbox"] { accent-color: var(--accent-primary); width: 16px; height: 16px; }
-                .modal-body select { 
-                    padding: 6px 12px; 
-                    border-radius: var(--border-radius); 
-                    border: 1px solid var(--border-color); 
-                    background: var(--bg); 
-                    color: var(--text); 
+                .modal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px; }
+                .modal-header h3 { font-size: 1.05rem; font-weight: 600; }
+                .modal-body { display:flex; flex-direction:column; gap:10px; }
+                .modal-footer { display:flex; justify-content:flex-end; gap:10px; padding-top:18px; border-top: 1px solid var(--line); margin-top: 18px; }
+                .modal-body label { 
+                    display:flex; align-items:center; justify-content: space-between; gap:14px; 
+                    font-size:13.5px; color: var(--text-secondary); cursor: pointer;
+                    padding: 9px 12px;
+                    border: 1px solid var(--line);
+                    border-radius: 6px;
+                    transition: border-color 0.15s, background-color 0.15s;
                 }
+                .modal-body label:hover { border-color: var(--line-strong); background: var(--bg-inset); }
+                .modal-body label > input[type="checkbox"] { accent-color: var(--accent); width: 15px; height: 15px; flex-shrink: 0; }
+                .modal-body .opt-row {
+                    display:flex; align-items:center; justify-content: space-between; gap:14px;
+                    padding: 9px 12px;
+                    border: 1px solid var(--line);
+                    border-radius: 6px;
+                }
+                .modal-body .opt-row > select { 
+                    padding: 5px 10px; 
+                    border-radius: 5px; 
+                    border: 1px solid var(--line-strong); 
+                    background: var(--bg-inset); 
+                    color: var(--text);
+                    font-family: var(--font-mono);
+                    font-size: 12.5px;
+                }
+                .modal-body .opt-name { font-family: var(--font-mono); font-size: 12.5px; color: var(--text); }
                 #settings-close {
                     background: transparent;
                     border: none;
-                    color: var(--text-muted);
-                    font-size: 1.5rem;
+                    color: var(--text-dim);
+                    font-size: 1.2rem;
                     cursor: pointer;
-                    padding: 4px;
+                    padding: 6px 10px;
                     line-height: 1;
-                    border-radius: 4px;
+                    border-radius: 5px;
                     transition: all 0.2s;
                 }
                 #settings-close:hover {
                     color: var(--text);
-                    background: var(--muted-surface);
+                    background: var(--bg-inset);
                 }
             """}</style>
             <div id="settings-modal" class="modal-hidden" role="dialog" aria-modal="true" aria-hidden="true">
               <div class="modal-backdrop" id="settings-backdrop"></div>
               <div class="modal-card" role="document" id="settings-card">
                 <div class="modal-header">
-                  <h3>Playground Settings</h3>
-                  <button id="settings-close" title="Close">✕</button>
+                  <h3>Settings</h3>
+                  <button id="settings-close" title="Close">&#10005;</button>
                 </div>
                 <div class="modal-body">
-                  <label>
-                    Compiler Version
+                  <div class="opt-row">
+                    <span class="opt-name">compiler version</span>
                     <select id="opt-version">
 {version_options_html()}
                     </select>
-                  </label>
-                  <label>
-                  mode
-                  <select id="opt-mode">
+                  </div>
+                  <div class="opt-row">
+                    <span class="opt-name">mode</span>
+                    <select id="opt-mode">
                       <option value="debug_quick">debug_quick</option>
                       <option value="debug">debug</option>
                       <option value="debug_complete">debug_complete</option>
                       <option value="release">release</option>
                       <option value="release_fast">release_fast</option>
                       <option value="release_small">release_small</option>
-                  </select>
-                </label>
-                  <label><input type="checkbox" id="opt-verbose"> verbose (more logs)</label>
-                  <label><input type="checkbox" id="opt-use-tcc" checked> use-tcc (run translated c code via tiny cc)</label>
-                  <label><input type="checkbox" id="opt-debug-ir"> debug-ir (produce debug version of IR)</label>
-                  <label><input type="checkbox" id="opt-fno-unwind-tables"> fno-unwind-tables (readable IR)</label>
-                  <label><input type="checkbox" id="opt-lto"> lto (link time optimization)</label>
-                  <label><input type="checkbox" id="opt-benchmark"> benchmark (benchmark compilation)</label>
-                  <label><input type="checkbox" id="opt-bm-files"> bm-files (benchmark files)</label>
-                  <label><input type="checkbox" id="opt-bm-modules"> bm-modules (benchmark modules)</label>
-                  <label><input type="checkbox" id="opt-process-commands" checked> Process Commands</label>
+                    </select>
+                  </div>
+                  <label><span class="opt-name">verbose</span><input type="checkbox" id="opt-verbose"></label>
+                  <label><span class="opt-name">use-tcc &mdash; run translated c via tiny cc</span><input type="checkbox" id="opt-use-tcc" checked></label>
+                  <label><span class="opt-name">debug-ir &mdash; produce debug version of ir</span><input type="checkbox" id="opt-debug-ir"></label>
+                  <label><span class="opt-name">fno-unwind-tables &mdash; readable ir</span><input type="checkbox" id="opt-fno-unwind-tables"></label>
+                  <label><span class="opt-name">lto &mdash; link time optimization</span><input type="checkbox" id="opt-lto"></label>
+                  <label><span class="opt-name">benchmark &mdash; benchmark compilation</span><input type="checkbox" id="opt-benchmark"></label>
+                  <label><span class="opt-name">bm-files &mdash; benchmark files</span><input type="checkbox" id="opt-bm-files"></label>
+                  <label><span class="opt-name">bm-modules &mdash; benchmark modules</span><input type="checkbox" id="opt-bm-modules"></label>
+                  <label><span class="opt-name">process commands</span><input type="checkbox" id="opt-process-commands" checked></label>
                 </div>
                 <div class="modal-footer">
-                  <button id="settings-cancel" class="btn btn-secondary">Cancel</button>
-                  <button id="settings-save" class="btn btn-primary">Save Changes</button>
+                  <button id="settings-cancel" class="btn btn-ghost btn-sm">Cancel</button>
+                  <button id="settings-save" class="btn btn-primary btn-sm">Save</button>
                 </div>
               </div>
             </div>

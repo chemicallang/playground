@@ -46,9 +46,12 @@ public func test_main_page_title(env : &mut TestEnv) {
 public func test_main_page_hero_and_cta(env : &mut TestEnv) {
     var html = render_main_page()
     var view = html.to_view()
-    if (view.find(std::string_view("The <span>Chemical</span>")) == std::NPOS) { env.error("hero heading missing") }
+    if (view.find(std::string_view("Systems programming")) == std::NPOS) { env.error("hero heading missing") }
     if (view.find(std::string_view("href=\"/playground\"")) == std::NPOS) { env.error("playground CTA link missing") }
     if (view.find(std::string_view("chemicallang.com/install.sh")) == std::NPOS) { env.error("install command missing") }
+    if (view.find(std::string_view("code-window")) == std::NPOS) { env.error("hero code showcase missing") }
+    if (view.find(std::string_view("install-tab")) == std::NPOS) { env.error("install tabs missing") }
+    if (view.find(std::string_view("selectInstallTab")) == std::NPOS) { env.error("install tab switching logic missing") }
 }
 
 @test

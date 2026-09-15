@@ -9,7 +9,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 ROOT="$(cd "$SCRIPT_DIR/../../../.." && pwd)"
 APP_DIR="$ROOT/lang/compiled/playground"
 BUILD_DIR="$APP_DIR/build"
-PORT="${PLAYGROUND_TEST_PORT:-8099}"
+PORT="${PLAYGROUND_TEST_PORT:-8080}"
 URL="http://localhost:$PORT"
 
 pass=0
@@ -78,7 +78,7 @@ if [ -n "$old_pids" ]; then
 fi
 
 # 4. Start server (repo root so dev asset paths resolve)
-(cd "$ROOT" && "$EXE" -p "$PORT") &
+(cd "$ROOT" && "$EXE") &
 SERVER_PID=$!
 echo "[2/3] Server started (PID $SERVER_PID), waiting up to 10s..."
 

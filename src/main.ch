@@ -21,14 +21,9 @@ public struct ExecResult {
     var output : std::string
 }
 
-// minimal externs
-if (def.windows) {
-    @extern public func _popen(cmd : *char, mode : *char) : *mut FILE;
-    @extern public func _pclose(p : *mut FILE) : int;
-} else {
-    // @extern public func popen(cmd : *char, mode : *char) : *void;
-    // @extern public func pclose(p : *void) : int;
-}
+// popen/pclose are provided by cstd on all platforms:
+// - windows : _popen/_pclose externs + popen/pclose wrappers (cstd/windows/io/stdio.ch)
+// - posix   : popen/pclose externs (cstd/posix_linux|macos/io/stdio.ch)
 
 public func run_command(cmd_view : std::string_view) : ExecResult {
     // build command and redirect stderr into stdout
@@ -38,11 +33,7 @@ public func run_command(cmd_view : std::string_view) : ExecResult {
 
     // open pipe
     var pipe : *mut FILE = null
-    comptime if (def.windows) {
-        pipe = _popen(cmd.data(), "r")
-    } else {
-        pipe = popen(cmd.data(), "r")
-    }
+    pipe = popen(cmd.data(), "r")
     if (pipe == null) {
         var r = ExecResult()
         r.status = -1
@@ -63,7 +54,7 @@ public func run_command(cmd_view : std::string_view) : ExecResult {
 
     // close and determine status
     var raw_status : int = 0
-    comptime if (def.windows) { raw_status = _pclose(pipe) } else { raw_status = pclose(pipe) }
+    raw_status = pclose(pipe)
 
     // normalize exit code: on POSIX pclose returns wait status; extract WEXITSTATUS
     var code = raw_status

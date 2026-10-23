@@ -834,7 +834,17 @@ EOF
         fi
     fi
 
-    systemctl reload ssh
+    # Reload from a transient unit after this script returns. Reloading sshd
+    # in-process can drop the very connection this script is running over.
+    if command -v systemd-run >/dev/null 2>&1; then
+        systemctl stop chemical-ssh-reload.timer >/dev/null 2>&1 || true
+        if ! systemd-run --unit=chemical-ssh-reload --on-active=2s --collect \
+            systemctl reload ssh; then
+            systemctl reload ssh || true
+        fi
+    else
+        systemctl reload ssh || true
+    fi
     log "SSH hardening applied (rollback timer armed for 10 minutes)"
 }
 

@@ -437,6 +437,17 @@ detect_sudo_mode() {
 # deployment
 # ---------------------------------------------------------------------------
 
+verify_ssh_hardening() {
+    local i
+    for i in 1 2 3 4 5 6 7 8 9 10; do
+        if ssh_admin "sudo -n sshd -T 2>/dev/null | grep -q '^passwordauthentication no'" >/dev/null 2>&1; then
+            return 0
+        fi
+        sleep 2
+    done
+    return 1
+}
+
 prepare_binary() {
     log "Preparing the playground binary"
     if [ -n "$OPT_BINARY" ]; then
@@ -797,13 +808,19 @@ ssh_admin true >/dev/null 2>&1 || die "admin key login failed; not hardening SSH
 ssh_deploy true >/dev/null 2>&1 || die "deploy key login failed; not hardening SSH"
 
 log "Phase 2/3: hardening SSH (key-only, no root login)"
-run_remote_phase harden "$ADMIN_USER" "$OPS_KEY" "nopasswd"
+if ! run_remote_phase harden "$ADMIN_USER" "$OPS_KEY" "nopasswd"; then
+    warn "SSH connection closed while applying hardening (this can happen when sshd reloads); checking the new configuration..."
+fi
 
-if ssh_admin true >/dev/null 2>&1 && ssh_deploy true >/dev/null 2>&1; then
-    ssh_admin "sudo -n touch /run/chemical-ssh-ok; sudo -n systemctl stop chemical-ssh-rollback.timer >/dev/null 2>&1 || true; sudo -n systemctl reset-failed chemical-ssh-rollback.service >/dev/null 2>&1 || true" >/dev/null 2>&1 || true
-    log "SSH hardening verified"
+if verify_ssh_hardening; then
+    if ssh_admin true >/dev/null 2>&1 && ssh_deploy true >/dev/null 2>&1; then
+        ssh_admin "sudo -n touch /run/chemical-ssh-ok; sudo -n systemctl stop chemical-ssh-rollback.timer >/dev/null 2>&1 || true; sudo -n systemctl reset-failed chemical-ssh-rollback.service >/dev/null 2>&1 || true" >/dev/null 2>&1 || true
+        log "SSH hardening verified"
+    else
+        warn "key login failed after hardening. The server will restore password auth in ~10 minutes; use the provider console if you need in immediately."
+    fi
 else
-    warn "key login failed after hardening. The server will restore password auth in ~10 minutes; use the provider console if you need in immediately."
+    warn "SSH hardening did not take effect; password authentication may still be enabled. Re-run the setup or inspect /etc/ssh/sshd_config.d/."
 fi
 
 prepare_binary

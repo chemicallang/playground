@@ -248,10 +248,28 @@ host_key_name() {
 }
 
 scan_host_key() {
-    local scan fp old_fp
+    local all scan fp old_fp out_file err_file err
+    out_file="$TMP_DIR/ssh-keyscan.out"
+    err_file="$TMP_DIR/ssh-keyscan.err"
+
     log "Fetching SSH host key from $TARGET_HOST:$SSH_PORT"
-    scan="$(ssh-keyscan -p "$SSH_PORT" -T 10 -t ed25519 "$TARGET_HOST" 2>/dev/null | grep -v '^#' | sort -u | head -1)"
-    [ -n "$scan" ] || die "could not fetch the SSH host key; check the IP, port and provider firewall"
+    if ! ssh-keyscan -p "$SSH_PORT" -T 10 -t rsa,ecdsa,ed25519 "$TARGET_HOST" \
+        > "$out_file" 2> "$err_file"; then
+        err="$(cat "$err_file" 2>/dev/null || true)"
+        die "could not fetch the SSH host key from $TARGET_HOST:$SSH_PORT. Check that the server is up, SSH is on port $SSH_PORT, and the provider firewall allows this machine.${err:+ ssh-keyscan said: $err}"
+    fi
+
+    all="$(grep -v '^#' "$out_file" | sort -u || true)"
+    if [ -z "$all" ]; then
+        err="$(cat "$err_file" 2>/dev/null || true)"
+        die "ssh-keyscan returned no host key for $TARGET_HOST:$SSH_PORT. Check the SSH port and firewall.${err:+ ssh-keyscan said: $err}"
+    fi
+
+    # Prefer ED25519 when offered; otherwise use the first host key (some
+    # providers only generate an RSA host key).
+    scan="$(printf '%s\n' "$all" | grep ' ssh-ed25519 ' | head -1 || true)"
+    [ -n "$scan" ] || scan="$(printf '%s\n' "$all" | head -1)"
+
     fp="$(printf '%s\n' "$scan" | ssh-keygen -lf - 2>/dev/null | awk '{print $2}')"
     [ -n "$fp" ] || die "could not parse the SSH host key fingerprint"
 
@@ -266,7 +284,7 @@ scan_host_key() {
     else
         printf '\nServer host key fingerprint: %s\n' "$fp"
         printf 'Verify this in the provider console or another trusted channel.\n'
-        printf 'On the server console: ssh-keygen -lf /etc/ssh/ssh_host_ed25519_key.pub\n'
+        printf 'On the server console: ssh-keygen -lf /etc/ssh/ssh_host_ed25519_key.pub (or ssh_host_rsa_key.pub)\n'
         if ! prompt_yes_no "Does the fingerprint match?" "n"; then
             die "host key was not verified; refusing to continue"
         fi

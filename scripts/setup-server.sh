@@ -214,6 +214,7 @@ require_commands() {
 }
 
 ensure_keys() {
+    install -d -m 0700 "$HOME/.ssh"
     if [ ! -f "$OPS_KEY" ]; then
         log "Generating operator SSH key: $OPS_KEY"
         ssh-keygen -q -t ed25519 -a 100 -C "chemical-playground-ops" -f "$OPS_KEY" -N ""
@@ -256,7 +257,8 @@ scan_host_key() {
 
     old_fp=""
     if [ -f "$KNOWN_HOSTS" ]; then
-        old_fp="$(ssh-keygen -lf "$KNOWN_HOSTS" -F "$(host_key_name)" 2>/dev/null | awk '{print $2}' | head -1 || true)"
+        old_fp="$(ssh-keygen -lf "$KNOWN_HOSTS" -F "$(host_key_name)" 2>/dev/null \
+            | grep -v '^#' | awk '{print $3}' | head -1 || true)"
     fi
 
     if [ -n "$old_fp" ] && [ "$old_fp" = "$fp" ]; then
@@ -644,6 +646,7 @@ Security notes:
   - The deploy key is $DEPLOY_KEY. Protect it; it is also stored as a GitHub secret.
   - If Cloudflare DNS-01 was used, a root-only API token is stored at
     /etc/letsencrypt/cloudflare.ini so certbot can renew the certificate.
+  - The playground service account is uid 1000 and is not in sudo; the admin is separate.
   - The playground runs untrusted code in Docker. The Docker socket is effectively
     root-equivalent, so keep this host dedicated to the playground.
   - Unattended security upgrades are enabled. Reboot if /var/run/reboot-required exists.
@@ -689,9 +692,17 @@ trap 'rm -rf "$TMP_DIR"' EXIT
 
 scan_host_key
 
+ADMIN_READY=0
+if ssh_admin true >/dev/null 2>&1; then
+    ADMIN_READY=1
+    log "Admin key already works for $ADMIN_USER@$TARGET_HOST"
+fi
+
 if [ "$TLS_ONLY" = "1" ]; then
-    ssh_admin true >/dev/null 2>&1 || die "admin key login failed; check the admin user and $OPS_KEY"
-else
+    [ "$ADMIN_READY" = "1" ] || die "admin key login failed; check the admin user and $OPS_KEY"
+elif [ "$ADMIN_READY" = "0" ]; then
+    # First run (or the admin key was removed): bootstrap through the
+    # provider's initial SSH user, then switch to the admin key.
     install_operator_key
     detect_sudo_mode
 fi
@@ -716,6 +727,14 @@ if [ -n "${CF_TOKEN:-}" ]; then
     unset CF_TOKEN
 fi
 
+if [ "$ADMIN_READY" = "1" ]; then
+    PROVISION_USER="$ADMIN_USER"
+    PROVISION_SUDO="nopasswd"
+else
+    PROVISION_USER="$BOOTSTRAP_USER"
+    PROVISION_SUDO="$SUDO_MODE"
+fi
+
 write_remote_config
 
 if [ "$TLS_ONLY" = "1" ]; then
@@ -737,7 +756,7 @@ printf '\n'
 prompt_yes_no "Provision this server now?" "y" || die "aborted"
 
 log "Phase 1/3: provisioning (packages, users, Docker, nginx, firewall)"
-run_remote_phase provision "$BOOTSTRAP_USER" "$OPS_KEY" "$SUDO_MODE"
+run_remote_phase provision "$PROVISION_USER" "$OPS_KEY" "$PROVISION_SUDO"
 
 log "Verifying key-based login for admin and deploy"
 ssh_admin true >/dev/null 2>&1 || die "admin key login failed; not hardening SSH"
@@ -747,7 +766,7 @@ log "Phase 2/3: hardening SSH (key-only, no root login)"
 run_remote_phase harden "$ADMIN_USER" "$OPS_KEY" "nopasswd"
 
 if ssh_admin true >/dev/null 2>&1 && ssh_deploy true >/dev/null 2>&1; then
-    ssh_admin "sudo -n systemctl stop chemical-ssh-rollback.timer >/dev/null 2>&1 || true; sudo -n systemctl reset-failed chemical-ssh-rollback.service >/dev/null 2>&1 || true" >/dev/null 2>&1 || true
+    ssh_admin "sudo -n touch /run/chemical-ssh-ok; sudo -n systemctl stop chemical-ssh-rollback.timer >/dev/null 2>&1 || true; sudo -n systemctl reset-failed chemical-ssh-rollback.service >/dev/null 2>&1 || true" >/dev/null 2>&1 || true
     log "SSH hardening verified"
 else
     warn "key login failed after hardening. The server will restore password auth in ~10 minutes; use the provider console if you need in immediately."

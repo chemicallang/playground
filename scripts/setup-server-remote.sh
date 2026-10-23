@@ -132,6 +132,10 @@ ensure_app_user() {
     APP_GROUP="$app_group"
     APP_GID="$app_gid"
 
+    if [ "$ADMIN_USER" = "$APP_USER" ]; then
+        die "ADMIN_USER '$ADMIN_USER' is also the playground service account; choose a separate --admin-user (for example --admin-user ops)"
+    fi
+
     # The service's primary group must be 1000 so the binary's
     # `chown -R 1000:1000` on workspaces is a permitted no-op.
     usermod -aG "$APP_GROUP" "$APP_USER" 2>/dev/null || true
@@ -194,6 +198,38 @@ ensure_deploy_user() {
     usermod -aG "$APP_GROUP" deploy 2>/dev/null || true
     if getent group systemd-journal >/dev/null 2>&1; then
         usermod -aG systemd-journal deploy 2>/dev/null || true
+    fi
+}
+
+harden_app_user() {
+    # Called after ensure_admin_user, so the admin account exists before the
+    # service account loses sudo. This keeps a failed run recoverable.
+    if [ "$ADMIN_USER" = "$APP_USER" ]; then
+        die "ADMIN_USER '$ADMIN_USER' is also the playground service account; choose a separate --admin-user"
+    fi
+
+    # Cloud images commonly grant the default uid-1000 user (often 'ubuntu')
+    # passwordless sudo via cloud-init. The service account must not have it.
+    if id -nG "$APP_USER" 2>/dev/null | tr ' ' '\n' | grep -qx sudo; then
+        gpasswd -d "$APP_USER" sudo >/dev/null 2>&1 || true
+    fi
+
+    local f
+    for f in /etc/sudoers.d/*; do
+        [ -f "$f" ] || continue
+        case "$f" in
+            /etc/sudoers.d/90-chemical-*) continue ;;
+        esac
+        if grep -qE "^[[:space:]]*${APP_USER}[[:space:]]" "$f" 2>/dev/null; then
+            sed -i -E "/^[[:space:]]*${APP_USER}[[:space:]]/d" "$f"
+            if ! visudo -cf "$f" >/dev/null 2>&1; then
+                rm -f "$f"
+            fi
+        fi
+    done
+
+    if sudo -l -U "$APP_USER" 2>/dev/null | grep -qE 'may run|NOPASSWD|ALL'; then
+        die "the playground service account '$APP_USER' still has sudo privileges; remove them and re-run"
     fi
 }
 
@@ -738,6 +774,7 @@ EOF
 harden_ssh() {
     log "Applying key-only SSH configuration"
 
+    rm -f /run/chemical-ssh-ok
     install -d -m 0755 /etc/ssh/sshd_config.d
     cat > /etc/ssh/sshd_config.d/00-chemical-hardening.conf <<EOF
 PermitRootLogin no
@@ -777,6 +814,9 @@ EOF
     cat > /usr/local/sbin/chemical-ssh-rollback <<'EOF'
 #!/bin/sh
 set -eu
+if [ -f /run/chemical-ssh-ok ]; then
+    exit 0
+fi
 rm -f /etc/ssh/sshd_config.d/00-chemical-hardening.conf
 sshd -t
 systemctl reload ssh
@@ -835,10 +875,8 @@ provision() {
     log "Creating service users and directories"
     ensure_app_user
     ensure_admin_user
+    harden_app_user
     ensure_deploy_user
-    if [ "$ADMIN_USER" = "$APP_USER" ]; then
-        warn "ADMIN_USER is the same as the playground service account ($APP_USER); use a separate admin user for better isolation"
-    fi
 
     log "Configuring Docker"
     configure_docker

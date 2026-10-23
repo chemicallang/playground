@@ -58,13 +58,13 @@ EOF
 done
 
 # --- Environment ------------------------------------------------------------
-if [ -f "$ENV_FILE" ]; then
+if [ -f "$ENV_FILE" ] && [ -z "${DEPLOY_HOST:-}" ]; then
     info "Loading environment from $ENV_FILE"
     set -a
     # shellcheck disable=SC1090
     . "$ENV_FILE"
     set +a
-else
+elif [ -z "${DEPLOY_HOST:-}" ]; then
     warn "$ENV_FILE not found, using environment variables"
 fi
 

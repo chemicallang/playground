@@ -42,8 +42,10 @@ jobs:
             exit 1
           fi
           install -m 700 -d "$RUNNER_TEMP/ssh"
-          printf '%s' "$DEPLOY_SSH_KEY" > "$RUNNER_TEMP/ssh/deploy_key"
-          printf '%s' "$DEPLOY_KNOWN_HOSTS" > "$RUNNER_TEMP/ssh/known_hosts"
+          # OpenSSH rejects an ed25519 private key whose final line has no
+          # newline; GitHub secrets may arrive without one.
+          printf '%s\n' "$DEPLOY_SSH_KEY" > "$RUNNER_TEMP/ssh/deploy_key"
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > "$RUNNER_TEMP/ssh/known_hosts"
           chmod 600 "$RUNNER_TEMP/ssh/deploy_key" "$RUNNER_TEMP/ssh/known_hosts"
 
       - name: Run deployment script

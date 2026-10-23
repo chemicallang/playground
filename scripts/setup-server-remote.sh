@@ -485,6 +485,12 @@ EOF
 }
 
 write_nginx_http() {
+    if [ -f "$SSL_CERT" ] && [ -f "$SSL_KEY" ]; then
+        log "Existing certificate found; keeping nginx on HTTPS"
+        write_nginx_https
+        return 0
+    fi
+
     log "Writing nginx HTTP configuration for $DOMAIN"
     write_nginx_limits
     install -d -m 0755 /var/www/certbot

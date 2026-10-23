@@ -76,9 +76,10 @@ What it does on Ubuntu 24.04 (x86_64):
   (`DEPLOY_SSH_KEY`, `DEPLOY_KNOWN_HOSTS`, `DEPLOY_USER`, `DEPLOY_HOST`,
   `DEPLOY_PORT`, `DEPLOY_PATH`) and removes `DEPLOY_PASSWORD`
 
-TLS is issued with Let's Encrypt. Choose Cloudflare DNS-01 to issue the
-certificate before DNS cutover, or HTTP-01 after the A records point at the new
-server. To issue/reinstall the certificate later:
+TLS is issued with Let's Encrypt. The default account email is
+`support@chemicallang.com`; override it with `--email`. Choose Cloudflare
+DNS-01 to issue the certificate before DNS cutover, or HTTP-01 after the A
+records point at the new server. To issue/reinstall the certificate later:
 
 ```bash
 ./scripts/setup-server.sh --tls-only

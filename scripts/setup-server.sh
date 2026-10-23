@@ -69,7 +69,7 @@ Options:
   --ssh-port PORT        SSH port (default: 22)
   --admin-user USER      Non-root admin account to create/use (default: admin)
   --domain "D..."        Space-separated domains (default: chemicallang.com www.chemicallang.com)
-  --email EMAIL          Let's Encrypt account email
+  --email EMAIL          Let's Encrypt account email (default: support@chemicallang.com)
   --tls-mode MODE        cloudflare | http | none (prompted if omitted)
   --tls-only             Only issue/install the certificate (uses saved config)
   --binary PATH          Use this local playground binary instead of the latest release
@@ -123,7 +123,7 @@ if [ -f "$CONFIG_FILE" ]; then
     SSH_PORT="${SSH_PORT:-${SETUP_PORT:-22}}"
     ADMIN_USER="${ADMIN_USER:-${SETUP_ADMIN_USER:-admin}}"
     DOMAIN="${DOMAIN:-${SETUP_DOMAIN:-chemicallang.com www.chemicallang.com}}"
-    EMAIL="${EMAIL:-${SETUP_EMAIL:-}}"
+    EMAIL="${EMAIL:-${SETUP_EMAIL:-support@chemicallang.com}}"
     TLS_MODE="${TLS_MODE:-${SETUP_TLS_MODE:-}}"
     IMAGE_TAGS="${IMAGE_TAGS:-${SETUP_IMAGE_TAGS:-}}"
 fi

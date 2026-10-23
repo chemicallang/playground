@@ -90,6 +90,12 @@ Deployments use the same key-only configuration:
 ./deploy.sh --use-release
 ```
 
+Restart the service without deploying:
+
+```bash
+ssh playground 'sudo /usr/local/sbin/playground-restart'
+```
+
 `deploy.sh` handles a fresh server: it only rotates `playground` to
 `playground.old` when the current binary exists, and rolls back if the restart
 fails. The old `DEPLOY_PASSWORD`/`sshpass` path is gone.

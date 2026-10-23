@@ -44,6 +44,9 @@ DO_DEPLOY_ENV=1
 TLS_ONLY=0
 TMP_DIR=""
 SSH_ALIAS_WRITTEN=0
+REMOTE_SCRIPT_PATH=""
+REMOTE_CONFIG_PATH=""
+REMOTE_TOKEN_PATH=""
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -380,28 +383,41 @@ write_remote_config() {
 }
 
 upload_remote_files() {
-    local user="$1" key="$2"
+    local user="$1" key="$2" cfg
+
+    # Per-user paths: the provision phase runs as the provider user (often
+    # root) and later phases run as admin. A fixed /tmp path would be owned by
+    # root and the admin could not overwrite it.
+    REMOTE_SCRIPT_PATH="/tmp/chemical-setup-remote-${user}.sh"
+    REMOTE_CONFIG_PATH="/tmp/chemical-setup-${user}.env"
+    REMOTE_TOKEN_PATH="/tmp/chemical-cloudflare-${user}.ini"
+
+    cfg="$TMP_DIR/setup-${user}.env"
+    cp "$TMP_DIR/setup.env" "$cfg"
+    printf 'CF_CREDENTIALS_FILE=%q\n' "$REMOTE_TOKEN_PATH" >> "$cfg"
+    chmod 600 "$cfg"
+
     scp "${SCP_COMMON[@]}" -i "$key" \
-        "$REMOTE_SCRIPT" "$user@$TARGET_HOST:/tmp/chemical-setup-remote.sh"
+        "$REMOTE_SCRIPT" "$user@$TARGET_HOST:$REMOTE_SCRIPT_PATH"
     scp "${SCP_COMMON[@]}" -i "$key" \
-        "$TMP_DIR/setup.env" "$user@$TARGET_HOST:/tmp/chemical-setup.env"
+        "$cfg" "$user@$TARGET_HOST:$REMOTE_CONFIG_PATH"
     if [ "$TLS_MODE" = "cloudflare" ] && [ -f "$TMP_DIR/cloudflare.ini" ]; then
         scp "${SCP_COMMON[@]}" -i "$key" \
-            "$TMP_DIR/cloudflare.ini" "$user@$TARGET_HOST:/tmp/chemical-cloudflare.ini"
+            "$TMP_DIR/cloudflare.ini" "$user@$TARGET_HOST:$REMOTE_TOKEN_PATH"
     fi
     ssh "${SSH_COMMON[@]}" -i "$key" -o BatchMode=yes "$user@$TARGET_HOST" \
-        "chmod 700 /tmp/chemical-setup-remote.sh; chmod 600 /tmp/chemical-setup.env; if [ -f /tmp/chemical-cloudflare.ini ]; then chmod 600 /tmp/chemical-cloudflare.ini; fi"
+        "chmod 700 '$REMOTE_SCRIPT_PATH'; chmod 600 '$REMOTE_CONFIG_PATH'; if [ -f '$REMOTE_TOKEN_PATH' ]; then chmod 600 '$REMOTE_TOKEN_PATH'; fi"
 }
 
 run_remote_phase() {
     local phase="$1" user="$2" key="$3" sudo_mode="$4" cmd
     upload_remote_files "$user" "$key"
     if [ "$user" = "root" ]; then
-        cmd="bash /tmp/chemical-setup-remote.sh --config /tmp/chemical-setup.env --phase $phase"
+        cmd="bash '$REMOTE_SCRIPT_PATH' --config '$REMOTE_CONFIG_PATH' --phase '$phase'"
     elif [ "$sudo_mode" = "nopasswd" ]; then
-        cmd="sudo -n bash /tmp/chemical-setup-remote.sh --config /tmp/chemical-setup.env --phase $phase"
+        cmd="sudo -n bash '$REMOTE_SCRIPT_PATH' --config '$REMOTE_CONFIG_PATH' --phase '$phase'"
     else
-        cmd="sudo bash /tmp/chemical-setup-remote.sh --config /tmp/chemical-setup.env --phase $phase"
+        cmd="sudo bash '$REMOTE_SCRIPT_PATH' --config '$REMOTE_CONFIG_PATH' --phase '$phase'"
     fi
     ssh "${SSH_COMMON[@]}" -i "$key" -t "$user@$TARGET_HOST" "$cmd"
 }
@@ -619,7 +635,7 @@ print_summary() {
     local apex="${DOMAIN%% *}"
     local tls=0
     local ssh_hint
-    ssh_admin "rm -f /tmp/chemical-setup-remote.sh /tmp/chemical-setup.env /tmp/chemical-cloudflare.ini" >/dev/null 2>&1 || true
+    ssh_admin "rm -f '/tmp/chemical-setup-remote-$ADMIN_USER.sh' '/tmp/chemical-setup-$ADMIN_USER.env' '/tmp/chemical-cloudflare-$ADMIN_USER.ini'" >/dev/null 2>&1 || true
     ssh_admin "test -f /etc/letsencrypt/live/$apex/fullchain.pem" >/dev/null 2>&1 && tls=1
 
     if [ "$SSH_ALIAS_WRITTEN" = "1" ]; then

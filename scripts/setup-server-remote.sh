@@ -92,6 +92,7 @@ SSL_KEY="/etc/letsencrypt/live/${APEX}/privkey.pem"
 cleanup_tmp() {
     rm -f "$CONFIG"
     rm -f "$CF_CREDENTIALS_FILE"
+    rm -f "$0"
 }
 trap cleanup_tmp EXIT
 

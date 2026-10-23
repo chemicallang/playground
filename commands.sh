@@ -1,53 +1,43 @@
-# delete play-* directories
-find /home/playground/app -maxdepth 1 -type d -name "play-*" -exec rm -rf {} +
-
-# upload the executable, please replace YOUR_IP_ADDRESS before doing this
-scp playground USERNAME@YOUR_IP_ADDRESS:/home/playground/app/playground.new
-
-# set permissions to uploaded executable
-cd /home/playground/app
-chown playground:playground playground.new
-chmod +x playground.new
-
-# make executable current
-mv playground playground.old
-mv playground.new playground
-
-# restart the service
-sudo systemctl restart playground.service
-sudo systemctl status playground.service
-
-# clean current logs
-sudo journalctl --rotate           # rotate current logs
-sudo journalctl --vacuum-time=1s -u playground.service
-# get new logs (last 50)
-sudo journalctl -u playground.service -n 50 --no-pager
-
-
-# Please replace SOME_USER with the actual user name before using this file
-cat /etc/systemd/system/playground.service
-[Unit]
-Description=Playground App
-After=network.target docker.service
-Requires=docker.service
-
-[Service]
-User=SOME_USER
-Group=playground
-WorkingDirectory=/home/playground/app
-Environment=PLAYGROUND_ENV=production
-Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-ExecStart=/usr/local/bin/run-playground.sh
-Restart=on-failure
-RestartSec=5
-StandardOutput=journal
-StandardError=journal
-UMask=0000
-
-# Ensure Docker and app dir are writable
-ReadWritePaths=/home/playground/app /var/run/docker.sock
-ProtectHome=no
-PrivateTmp=false
-
-[Install]
-WantedBy=multi-user.target
+# Chemical Playground — operations quick reference
+#
+# One-time server setup (interactive; asks for the server address and lets
+# ssh-copy-id prompt for the password):
+#
+#   ./scripts/setup-server.sh
+#
+# The setup script provisions Ubuntu 24.04, creates the `playground`/`deploy`
+# users, installs Docker/nginx, hardens SSH, deploys the binary and can update
+# the GitHub Actions secrets. It is safe to re-run, including against a new
+# server.
+#
+# Deploy the latest release (key-only; uses deploy.env):
+#
+#   ./deploy.sh --use-release
+#
+# Deploy a specific release:
+#
+#   ./deploy.sh --use-release --version v1.5.21
+#
+# Restart the service:
+#
+#   ./restart.sh
+#
+# Logs / status:
+#
+#   ssh playground 'sudo journalctl -u playground.service -n 100 --no-pager'
+#   ssh playground 'sudo systemctl status playground.service --no-pager'
+#
+# Clean stale workspaces manually:
+#
+#   ssh playground 'sudo /usr/local/bin/playground-cleanup'
+#
+# The systemd unit and helper scripts are installed by setup-server-remote.sh:
+#
+#   /etc/systemd/system/playground.service
+#   /usr/local/bin/run-playground.sh
+#   /usr/local/bin/playground-cleanup
+#   /usr/local/sbin/playground-restart
+#
+# The app runs as the uid-1000 account (because the binary's sandbox uses
+# `--user 1000:1000`), listens on 127.0.0.1:8080 behind nginx, and is reachable
+# only through the reverse proxy.

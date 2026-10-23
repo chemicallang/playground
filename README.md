@@ -41,6 +41,67 @@ Run the server (builds first unless `--no-build`):
 ```
 The app listens on port 8080 by default.
 
+### Server setup (production)
+
+The production server is the `chemicallang.com` origin: nginx terminates TLS,
+proxies to the playground binary on `127.0.0.1:8080`, and the binary runs user
+code in Docker.
+
+Run the interactive setup from this machine:
+
+```bash
+./scripts/setup-server.sh
+```
+
+It asks for the server address and SSH login, then uses `ssh-copy-id` so the
+server password is typed into ssh's own prompt — the script never reads or
+stores it. It verifies the SSH host-key fingerprint before connecting.
+
+What it does on Ubuntu 24.04 (x86_64):
+
+- installs security updates, Docker, nginx, certbot, ufw, fail2ban, acl
+- creates a non-root `admin` user (key-only, passwordless sudo) and a `deploy`
+  user (key-only, sudo limited to restarting the service)
+- creates the uid-1000 service account required by the binary's
+  `--user 1000:1000` sandbox, plus `/home/playground/app`
+- installs a hardened `playground.service`, cleanup/health timers and a narrow
+  restart wrapper
+- configures nginx HTTP/HTTPS, rate-limits `/submit`, and pins the app to
+  loopback
+- enables UFW (22/80/443 only), fail2ban, unattended upgrades, journald limits
+  and basic sysctl hardening
+- deploys the latest `pg-linux-x64-tcc` release and both PNG assets
+- runs a real `/submit` compile round-trip through Docker
+- optionally updates the `chemicallang/playground` GitHub Actions secrets
+  (`DEPLOY_SSH_KEY`, `DEPLOY_KNOWN_HOSTS`, `DEPLOY_USER`, `DEPLOY_HOST`,
+  `DEPLOY_PORT`, `DEPLOY_PATH`) and removes `DEPLOY_PASSWORD`
+
+TLS is issued with Let's Encrypt. Choose Cloudflare DNS-01 to issue the
+certificate before DNS cutover, or HTTP-01 after the A records point at the new
+server. To issue/reinstall the certificate later:
+
+```bash
+./scripts/setup-server.sh --tls-only
+```
+
+Deployments use the same key-only configuration:
+
+```bash
+./deploy.sh --use-release
+```
+
+`deploy.sh` handles a fresh server: it only rotates `playground` to
+`playground.old` when the current binary exists, and rolls back if the restart
+fails. The old `DEPLOY_PASSWORD`/`sshpass` path is gone.
+
+Re-running `setup-server.sh` against a new server reuses the same operator and
+deploy keys, updates the pinned `known_hosts` entry, rewrites the local
+`deploy.env`, and updates the GitHub secrets.
+
+> The playground executes untrusted code. The Docker socket is effectively
+> root-equivalent, so keep this host dedicated to the playground and keep the
+> deploy key protected.
+
 ### Tests
 
 Tests live in `tests/` and are annotated with `@test`. They are a separate build flavor: `chemical.mod` compiles `src/` always, `src/app/` (the real server main) only in app mode, and `tests/` only when building with `--test`. The test binary ships its own `tests/main.ch` that dispatches to the shared `test_runner`.

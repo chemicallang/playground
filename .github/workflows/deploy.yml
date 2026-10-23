@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version to deploy (e.g., v1.0). Leave empty for latest.'
+        description: 'Version to deploy (e.g., v1.5.21). Leave empty for latest.'
         required: false
         default: ''
       no_tcc:
@@ -12,29 +12,58 @@ on:
         type: boolean
         default: false
 
+permissions:
+  contents: read
+
+concurrency:
+  group: playground-production
+  cancel-in-progress: false
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install sshpass
-        run: sudo apt-get update && sudo apt-get install -y sshpass
+      - name: Prepare SSH material
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          if [ -z "${DEPLOY_SSH_KEY:-}" ]; then
+            echo "DEPLOY_SSH_KEY secret is missing" >&2
+            exit 1
+          fi
+          if [ -z "${DEPLOY_KNOWN_HOSTS:-}" ]; then
+            echo "DEPLOY_KNOWN_HOSTS secret is missing" >&2
+            exit 1
+          fi
+          install -m 700 -d "$RUNNER_TEMP/ssh"
+          printf '%s' "$DEPLOY_SSH_KEY" > "$RUNNER_TEMP/ssh/deploy_key"
+          printf '%s' "$DEPLOY_KNOWN_HOSTS" > "$RUNNER_TEMP/ssh/known_hosts"
+          chmod 600 "$RUNNER_TEMP/ssh/deploy_key" "$RUNNER_TEMP/ssh/known_hosts"
 
       - name: Run deployment script
         env:
           DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
-          DEPLOY_PASSWORD: ${{ secrets.DEPLOY_PASSWORD }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
           DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+          DEPLOY_SSH_KEY_FILE: ${{ runner.temp }}/ssh/deploy_key
+          DEPLOY_KNOWN_HOSTS_FILE: ${{ runner.temp }}/ssh/known_hosts
+          INPUT_VERSION: ${{ github.event.inputs.version }}
+          INPUT_NO_TCC: ${{ github.event.inputs.no_tcc }}
         run: |
+          set -euo pipefail
           chmod +x ./deploy.sh
-          ARGS="--use-release"
-          if [ "${{ github.event.inputs.version }}" != "" ]; then
-            ARGS="$ARGS --version ${{ github.event.inputs.version }}"
+          ARGS=(--use-release)
+          if [ -n "${INPUT_VERSION:-}" ]; then
+            ARGS+=(--version "$INPUT_VERSION")
           fi
-          if [ "${{ github.event.inputs.no_tcc }}" == "true" ]; then
-            ARGS="$ARGS --no-tcc"
+          if [ "${INPUT_NO_TCC:-false}" = "true" ]; then
+            ARGS+=(--no-tcc)
           fi
-          ./deploy.sh $ARGS
+          ./deploy.sh "${ARGS[@]}"
